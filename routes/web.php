@@ -109,6 +109,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         // Ticket Verification
         Route::get('/tickets/verify', [TicketVerificationController::class, 'index'])->name('tickets.index');
+        Route::post('/tickets/{ticket}/proof-check', [TicketVerificationController::class, 'runProofCheck'])->name('tickets.proof-check');
         Route::patch('/tickets/{ticket}/approve', [TicketVerificationController::class, 'approve'])->name('tickets.approve');
         // Disputes
         Route::get('/disputes', [AdminDisputeController::class, 'index'])->name('disputes.index');

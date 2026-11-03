@@ -16,6 +16,21 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
+        $this->app->bind(\App\Services\ProofCheck\ProofCheckService::class, function ($app) {
+            $config = $app['config']['services.ai_proof'];
+
+            $reader = match ($config['driver'] ?? 'none') {
+                'claude' => new \App\Services\ProofCheck\ClaudeProofReader(
+                    new \Anthropic\Client(apiKey: $config['api_key'] ?: null),
+                    $config['model'],
+                ),
+                'fake' => new \App\Services\ProofCheck\FakeProofReader,
+                default => null,
+            };
+
+            return new \App\Services\ProofCheck\ProofCheckService($reader);
+        });
+
         $this->app->bind(MpesaGateway::class, function ($app) {
             $config = $app['config']['services.mpesa'];
 

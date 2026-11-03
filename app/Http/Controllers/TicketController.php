@@ -62,7 +62,7 @@ class TicketController extends Controller
                 : null;
             $purchaseProofPath = $request->file('purchase_proof')->store('purchase_proofs', self::PROOF_DISK);
 
-            DB::transaction(function () use ($validated, $eventImagePath, $purchaseProofPath, $proofHash, $existingEvent) {
+            $ticket = DB::transaction(function () use ($validated, $eventImagePath, $purchaseProofPath, $proofHash, $existingEvent) {
                 if ($existingEvent) {
                     $event = $existingEvent;
                     if ($eventImagePath) {
@@ -92,7 +92,19 @@ class TicketController extends Controller
                     'proof_hash' => $proofHash,
                     'ticket_reference' => Ticket::normaliseReference($validated['ticket_reference'] ?? null),
                 ])->save();
+
+                return $ticket;
             });
+
+            // Read the proof with AI (if switched on) once the seller has their response.
+            if (\App\Services\ProofCheck\ProofCheckService::enabled()) {
+                $ticketId = $ticket->id;
+                dispatch(function () use ($ticketId) {
+                    if ($t = Ticket::find($ticketId)) {
+                        app(\App\Services\ProofCheck\ProofCheckService::class)->check($t);
+                    }
+                })->afterResponse();
+            }
 
             return redirect()->route('seller.dashboard')->with('success', 'Your ticket has been listed successfully and is pending review.');
         } catch (\Throwable $e) {

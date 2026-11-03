@@ -8,7 +8,7 @@
             <ul>
                 <li><strong>Account details:</strong> your name and email address.</li>
                 <li><strong>Payment details:</strong> the phone number you pay with or are paid to, and M-Pesa transaction references. We never see or store your M-Pesa PIN.</li>
-                <li><strong>Listing verification:</strong> proof-of-purchase images and ticket or order numbers that sellers upload. These are only visible to our review team.</li>
+                <li><strong>Listing verification:</strong> proof-of-purchase images and ticket or order numbers that sellers upload. These are only visible to our review team. To help reviewers spot mistakes and fakes, we may use an AI service (Anthropic) to read the details on a proof of purchase. It doesn't make decisions: a person reviews every listing.</li>
                 <li><strong>Problem reports:</strong> the details and any evidence you send when reporting a problem with a ticket.</li>
             </ul>
 

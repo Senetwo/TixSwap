@@ -84,6 +84,17 @@ return [
     ],
 
     /*
+    | AI proof-of-purchase check (advisory; admins still decide).
+    | AI_PROOF_DRIVER: empty/none = off (default), claude = Anthropic API,
+    | fake = local testing. Uses ANTHROPIC_API_KEY.
+    */
+    'ai_proof' => [
+        'driver' => env('AI_PROOF_DRIVER', 'none'),
+        'model' => env('AI_PROOF_MODEL', 'claude-opus-5-5'),
+        'api_key' => env('ANTHROPIC_API_KEY'),
+    ],
+
+    /*
     | Marketplace rules.
     */
     'tixswap' => [

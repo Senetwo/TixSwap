@@ -27,6 +27,22 @@ Artisan::command('tixswap:send-payouts', function (App\Services\PayoutService $p
     $this->info("Sent {$sent} payout(s); {$failed} failed.");
 })->purpose('Send pending seller payouts via M-Pesa B2C');
 
+Artisan::command('tixswap:check-proofs {--all : Re-check listings that were already checked}', function (App\Services\ProofCheck\ProofCheckService $checks) {
+    if (! App\Services\ProofCheck\ProofCheckService::enabled()) {
+        $this->warn('The AI proof check is switched off (AI_PROOF_DRIVER).');
+
+        return;
+    }
+    $tickets = App\Models\Ticket::where('status', 'pending')
+        ->when(! $this->option('all'), fn ($q) => $q->whereDoesntHave('proofCheck', fn ($c) => $c->where('status', 'done')))
+        ->get();
+    foreach ($tickets as $ticket) {
+        $result = $checks->check($ticket);
+        $this->line("#{$ticket->id}: ".($result?->verdict ?? $result?->error ?? 'skipped'));
+    }
+    $this->info('Checked '.$tickets->count().' listing(s).');
+})->purpose('Run the AI proof-of-purchase check on listings waiting for review');
+
 // Requires the scheduler on the server: * * * * * php artisan schedule:run
 Schedule::command('tixswap:expire-reservations')->everyMinute()->withoutOverlapping();
 Schedule::command('tixswap:release-escrow')->hourly()->withoutOverlapping();

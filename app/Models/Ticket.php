@@ -63,6 +63,11 @@ class Ticket extends Model
         return $this->belongsTo(User::class, 'buyer_id');
     }
 
+    public function proofCheck()
+    {
+        return $this->hasOne(ProofCheck::class);
+    }
+
     public function checkedInBy()
     {
         return $this->belongsTo(User::class, 'checked_in_by');

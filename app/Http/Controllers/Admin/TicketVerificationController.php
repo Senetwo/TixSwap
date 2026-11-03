@@ -17,7 +17,7 @@ class TicketVerificationController extends Controller
     public function index(): View
     {
         $pendingTickets = Ticket::where('status', Ticket::STATUS_PENDING)
-                                ->with(['seller', 'event'])
+                                ->with(['seller', 'event', 'proofCheck'])
                                 ->latest()
                                 ->get();
 
@@ -26,6 +26,22 @@ class TicketVerificationController extends Controller
             // Other listings with the same proof file or ticket number.
             'duplicates' => $pendingTickets->mapWithKeys(fn (Ticket $t) => [$t->id => $t->possibleDuplicates()]),
         ]);
+    }
+
+    /**
+     * Run (or re-run) the AI proof check for a listing.
+     */
+    public function runProofCheck(Ticket $ticket, \App\Services\ProofCheck\ProofCheckService $checks): RedirectResponse
+    {
+        if (! \App\Services\ProofCheck\ProofCheckService::enabled()) {
+            return back()->with('error', 'The AI proof check is switched off (AI_PROOF_DRIVER).');
+        }
+
+        $check = $checks->check($ticket);
+
+        return back()->with($check?->status === 'done' ? 'success' : 'error', $check?->status === 'done'
+            ? 'Proof checked.'
+            : 'The proof couldn\'t be checked: '.($check?->error ?? 'unknown error'));
     }
 
     /**

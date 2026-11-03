@@ -38,6 +38,8 @@
                             </div>
                         </dl>
 
+                        @include('admin.tickets._proof-check')
+
                         @foreach ($dups as $dup)
                             <x-ui.alert :tone="$dup['other_seller'] ? 'error' : 'warning'" class="mt-4">
                                 Same {{ $dup['match'] === 'proof' ? 'proof file' : 'ticket number' }} as listing #{{ $dup['ticket']->id }}
