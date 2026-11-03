@@ -19,6 +19,7 @@ class TicketFactory extends Factory
             'event_id' => Event::factory(),
             'user_id' => User::factory()->seller(),
             'price' => 2500,
+            'face_value' => 2500,
             'seat_details' => 'Section A, Row 5',
             'original_vendor' => 'Ticketsasa',
             'purchase_proof' => 'purchase_proofs/example.jpg',

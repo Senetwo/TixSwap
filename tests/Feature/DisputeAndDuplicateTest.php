@@ -214,6 +214,7 @@ class DisputeAndDuplicateTest extends TestCase
             'location' => 'Nairobi',
             'date' => now()->addWeek()->toDateTimeString(),
             'price' => 3000,
+            'face_value' => 3000,
             'seat_details' => 'VIP',
             'ticket_reference' => $reference,
             'event_image' => UploadedFile::fake()->image('event.jpg'),

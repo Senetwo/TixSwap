@@ -28,6 +28,7 @@ class Ticket extends Model
         'event_id',
         'user_id',
         'price',
+        'face_value',
         'seat_details',
         'original_vendor',
         'purchase_proof',
@@ -133,6 +134,32 @@ class Ticket extends Model
                 'match' => $this->proof_hash && $other->proof_hash === $this->proof_hash ? 'proof' : 'reference',
                 'other_seller' => $other->user_id !== $this->user_id,
             ]);
+    }
+
+    /**
+     * Highest price allowed for a given face value, or null if uncapped.
+     */
+    public static function maxPriceFor(float|int|string|null $faceValue): ?int
+    {
+        $cap = config('services.tixswap.max_markup_percent');
+
+        if ($cap === null || ! $faceValue) {
+            return null;
+        }
+
+        return (int) floor((float) $faceValue * (1 + $cap / 100));
+    }
+
+    /**
+     * Price difference against face value, in whole percent (e.g. 15 or -10).
+     */
+    public function markupPercent(): ?int
+    {
+        if (! $this->face_value || (float) $this->face_value <= 0) {
+            return null;
+        }
+
+        return (int) round(((float) $this->price / (float) $this->face_value - 1) * 100);
     }
 
     public function isSold(): bool

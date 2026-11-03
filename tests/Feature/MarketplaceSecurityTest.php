@@ -220,6 +220,7 @@ class MarketplaceSecurityTest extends TestCase
             'location' => 'Nairobi',
             'date' => now()->addWeek()->toDateTimeString(),
             'price' => 4000,
+            'face_value' => 4000,
             'seat_details' => 'General Admission',
             'event_image' => UploadedFile::fake()->image('event.jpg'),
             'purchase_proof' => UploadedFile::fake()->image('receipt.jpg'),

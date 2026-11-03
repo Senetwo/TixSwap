@@ -16,7 +16,12 @@
                                     {{ \Illuminate\Support\Carbon::parse($ticket->event->date)->format('D, M j, Y · g:i A') }} · {{ $ticket->event->location }}
                                 </p>
                             </div>
-                            <p class="money text-lg font-bold text-gray-900">KES {{ number_format($ticket->price) }}</p>
+                            <div class="text-right">
+                                <p class="money text-lg font-bold text-gray-900">KES {{ number_format($ticket->price) }}</p>
+                                @if ($ticket->face_value)
+                                    <p class="text-xs text-gray-500">Face KES {{ number_format($ticket->face_value) }} · {{ ($ticket->markupPercent() > 0 ? '+' : '').$ticket->markupPercent() }}%</p>
+                                @endif
+                            </div>
                         </div>
 
                         <dl class="mt-4 grid grid-cols-2 gap-x-6 gap-y-3 text-sm sm:grid-cols-4">

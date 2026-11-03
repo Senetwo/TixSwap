@@ -17,7 +17,7 @@ class UpdateTicketRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'price' => 'required|numeric|min:1|max:1000000',
+            'price' => ['required', 'numeric', 'min:1', 'max:1000000', new \App\Rules\WithinPriceCap($this->route('ticket')->face_value)],
             'seat_details' => 'required|string|max:255',
             'original_vendor' => 'nullable|string|max:255',
         ];

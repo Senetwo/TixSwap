@@ -22,7 +22,9 @@
             @method('PATCH')
             <x-ui.field label="Seat or ticket type" name="seat_details" :value="$ticket->seat_details" required />
             <div>
-                <x-ui.field label="Your price" name="price" type="number" prefix="KES" min="1" step="1" required inputmode="numeric" x-model="price" />
+                @php($max = \App\Models\Ticket::maxPriceFor($ticket->face_value))
+                <x-ui.field label="Your price" name="price" type="number" prefix="KES" min="1" step="1" required inputmode="numeric" x-model="price"
+                            :max="$max" :hint="$max ? 'Face value KES '.number_format($ticket->face_value).' · max KES '.number_format($max) : null" />
                 <p class="mt-1.5 text-sm text-gray-500" x-show="price > 0">
                     You'll receive <strong class="money text-gray-900" x-text="'KES ' + Math.floor(Math.ceil(price) * (1 - fee / 100)).toLocaleString()"></strong> after the TixSwap fee.
                 </p>

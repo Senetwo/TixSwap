@@ -44,6 +44,19 @@
             <div class="rounded-3xl bg-white p-6 shadow-lift ring-1 ring-gray-200 lg:sticky lg:top-24">
                 <p class="text-sm font-medium text-gray-500">Price</p>
                 <p class="money mt-1 text-4xl font-bold tracking-tight text-gray-900">KES {{ number_format($price) }}</p>
+                @if ($ticket->face_value)
+                    @php($markup = $ticket->markupPercent())
+                    <p class="mt-2 flex flex-wrap items-center gap-2 text-sm text-gray-500">
+                        Face value KES {{ number_format($ticket->face_value) }}
+                        @if ($markup === 0)
+                            <x-ui.badge tone="green">At face value</x-ui.badge>
+                        @elseif ($markup < 0)
+                            <x-ui.badge tone="green">{{ abs($markup) }}% below face value</x-ui.badge>
+                        @else
+                            <x-ui.badge>{{ $markup }}% above face value</x-ui.badge>
+                        @endif
+                    </p>
+                @endif
                 <p class="mt-1 text-sm text-gray-500">No booking fees for buyers</p>
 
                 @if ($reserved)

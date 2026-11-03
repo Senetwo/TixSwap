@@ -63,6 +63,10 @@ return [
     */
     'tixswap' => [
         'commission_percent' => (float) env('TIXSWAP_COMMISSION_PERCENT', 10),
+        // Highest resale price allowed, as % above face value. Empty = no cap.
+        'max_markup_percent' => env('TIXSWAP_MAX_MARKUP_PERCENT', 20) === '' || env('TIXSWAP_MAX_MARKUP_PERCENT', 20) === null
+            ? null
+            : (float) env('TIXSWAP_MAX_MARKUP_PERCENT', 20),
         'reservation_minutes' => (int) env('TIXSWAP_RESERVATION_MINUTES', 10),
         'escrow_release_hours_after_event' => (int) env('TIXSWAP_ESCROW_RELEASE_HOURS', 24),
     ],

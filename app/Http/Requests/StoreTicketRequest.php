@@ -21,13 +21,21 @@ class StoreTicketRequest extends FormRequest
      *
      * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array|string>
      */
+    public function messages(): array
+    {
+        return [
+            'face_value.required' => 'Enter the original price printed on your ticket or receipt.',
+        ];
+    }
+
     public function rules(): array
     {
         return [
             'event_name' => 'required|string|max:255',
             'location' => 'required|string|max:255',
             'date' => 'required|date|after:now',
-            'price' => 'required|numeric|min:1|max:1000000',
+            'face_value' => 'required|numeric|min:1|max:1000000',
+            'price' => ['required', 'numeric', 'min:1', 'max:1000000', new \App\Rules\WithinPriceCap($this->input('face_value'))],
             'seat_details' => 'required|string|max:255',
             'original_vendor' => 'nullable|string|max:255',
             'ticket_reference' => 'nullable|string|max:100',

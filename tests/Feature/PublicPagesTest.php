@@ -110,6 +110,7 @@ class PublicPagesTest extends TestCase
             'location' => 'Carnivore, Nairobi',
             'date' => now()->addWeek()->setTime(14, 0)->toDateTimeString(),
             'price' => 3000,
+            'face_value' => 3000,
             'seat_details' => 'GA',
             'event_image' => UploadedFile::fake()->image('e.jpg'),
             'purchase_proof' => UploadedFile::fake()->createWithContent('p.png', uniqid()),

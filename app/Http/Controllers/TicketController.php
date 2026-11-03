@@ -82,6 +82,7 @@ class TicketController extends Controller
                     'event_id' => $event->id,
                     'user_id' => Auth::id(),
                     'price' => $validated['price'],
+                    'face_value' => $validated['face_value'],
                     'seat_details' => $validated['seat_details'],
                     'original_vendor' => $validated['original_vendor'] ?? 'N/A',
                     'purchase_proof' => $purchaseProofPath,

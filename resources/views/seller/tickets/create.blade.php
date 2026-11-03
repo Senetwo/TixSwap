@@ -10,7 +10,8 @@
     @endif
 
     <form action="{{ route('seller.tickets.store') }}" method="POST" enctype="multipart/form-data"
-          x-data="{ price: @js(old('price')), fee: {{ $fee }}, cover: null, proofName: null, submitting: false }"
+          x-data="{ price: @js(old('price')), face: @js(old('face_value')), cap: @js(config('services.tixswap.max_markup_percent')), fee: {{ $fee }}, cover: null, proofName: null, submitting: false,
+                    get max() { return (this.cap === null || !(this.face > 0)) ? null : Math.floor(this.face * (1 + this.cap / 100)); } }"
           @submit="submitting = true">
         @csrf
         <x-ui.card>
@@ -80,15 +81,23 @@
                     </div>
                 @endcomponent
 
-                @component('seller.tickets._section', ['step' => 2, 'title' => 'Your ticket', 'description' => 'Be specific about the seat or ticket type so buyers know exactly what they get.'])
+                @component('seller.tickets._section', ['step' => 2, 'title' => 'Your ticket', 'description' => 'Be specific about the seat or ticket type. To keep resale fair, prices are capped close to face value.'])
                     <x-ui.field label="Seat or ticket type" name="seat_details" required placeholder="e.g. VIP, or Block C, Row 4, Seat 12" />
-                    <div>
-                        <x-ui.field label="Your price" name="price" type="number" prefix="KES" min="1" step="1" required inputmode="numeric" x-model="price" placeholder="0" />
-                        <p class="mt-1.5 text-sm text-gray-500" x-show="price > 0" x-cloak>
-                            You'll receive <strong class="money text-gray-900" x-text="'KES ' + Math.floor(Math.ceil(price) * (1 - fee / 100)).toLocaleString()"></strong>
-                            after the {{ rtrim(rtrim(number_format($fee, 1), '0'), '.') }}% TixSwap fee.
-                        </p>
+                    <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
+                        <x-ui.field label="Face value" name="face_value" type="number" prefix="KES" min="1" step="1" required inputmode="numeric" x-model="face" placeholder="0"
+                                    hint="The original price on your ticket or receipt." />
+                        <div>
+                            <x-ui.field label="Your price" name="price" type="number" prefix="KES" min="1" step="1" required inputmode="numeric" x-model="price" placeholder="0" x-bind:max="max" />
+                            <p class="mt-1.5 text-sm" x-show="max !== null" x-cloak :class="price > max ? 'text-red-600 font-medium' : 'text-gray-500'">
+                                Max <span class="money" x-text="'KES ' + (max ?? 0).toLocaleString()"></span>
+                                ({{ rtrim(rtrim(number_format((float) config('services.tixswap.max_markup_percent'), 1), '0'), '.') }}% above face value)
+                            </p>
+                        </div>
                     </div>
+                    <p class="rounded-xl bg-gray-50 px-4 py-3 text-sm text-gray-600 ring-1 ring-gray-200" x-show="price > 0" x-cloak>
+                        You'll receive <strong class="money text-gray-900" x-text="'KES ' + Math.floor(Math.ceil(price) * (1 - fee / 100)).toLocaleString()"></strong>
+                        after the {{ rtrim(rtrim(number_format($fee, 1), '0'), '.') }}% TixSwap fee.
+                    </p>
                 @endcomponent
 
                 @component('seller.tickets._section', ['step' => 3, 'title' => 'Proof it\'s real', 'description' => 'Only our review team sees this. It\'s never shown to buyers.'])
