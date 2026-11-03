@@ -4,14 +4,17 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>{{ $title ?? 'TixSwap Admin' }}</title>
-        <script src="https://cdn.tailwindcss.com"></script>
-        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}">
+        @vite(['resources/css/app.css', 'resources/js/app.js'])
+        {{-- Pinned version so a new Chart.js release can't break the dashboard --}}
+        <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     </head>
     <body class="h-full">
         <div class="flex h-full">
             <!-- Sidebar -->
             <aside class="w-64 flex-shrink-0 bg-gray-800 text-white flex flex-col">
-                <div class="h-16 flex items-center justify-center text-xl font-bold border-b border-gray-700">
+                <div class="h-16 flex items-center justify-center gap-2 text-xl font-bold border-b border-gray-700">
+                    <x-application-logo class="h-7 w-7 text-red-500" />
                     TixSwap Admin
                 </div>
                 <nav class="flex-1 px-2 py-4 space-y-1">

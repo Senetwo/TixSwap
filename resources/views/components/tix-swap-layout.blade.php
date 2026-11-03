@@ -4,7 +4,8 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>{{ $title ?? 'TixSwap' }}</title>
-        <script src="https://cdn.tailwindcss.com"></script>
+        <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}">
+        @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
     <body class="flex flex-col min-h-screen">
         <!-- Header -->
@@ -13,7 +14,7 @@
                 <div class="flex h-16 items-center justify-between">
                     <div class="flex items-center">
                         <div class="flex-shrink-0 text-white font-bold text-xl">
-                            <a href="{{ route('dashboard') }}">TixSwap</a>
+                            <a href="{{ route('dashboard') }}" class="flex items-center gap-2"><x-application-logo class="h-8 w-8 text-white" />TixSwap</a>
                         </div>
                         <div class="hidden md:block">
                             <div class="ml-10 flex items-baseline space-x-4">
