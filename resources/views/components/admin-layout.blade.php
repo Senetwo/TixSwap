@@ -8,7 +8,8 @@
             + \App\Models\Order::where('status', 'needs_refund')->count(),
     ];
     $items = [
-        ['Overview', 'admin.dashboard', 'admin.dashboard', 'chart', null],
+        ['Overview', 'admin.dashboard', 'admin.dashboard', 'home', null],
+        ['Analytics', 'admin.analytics.index', 'admin.analytics.*', 'chart', null],
         ['Review queue', 'admin.tickets.pending', 'admin.tickets.*', 'clipboard-check', $counts['review']],
         ['Listings', 'admin.listings.index', 'admin.listings.*', 'ticket', null],
         ['Disputes', 'admin.disputes.index', 'admin.disputes.*', 'scale', $counts['disputes']],

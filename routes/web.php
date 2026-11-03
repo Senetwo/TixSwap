@@ -115,6 +115,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::patch('/disputes/{dispute}', [AdminDisputeController::class, 'resolve'])->name('disputes.resolve');
         Route::get('/disputes/{dispute}/evidence', [AdminDisputeController::class, 'evidence'])->name('disputes.evidence');
 
+        // Analytics
+        Route::get('/analytics', [\App\Http\Controllers\Admin\AnalyticsController::class, 'index'])->name('analytics.index');
+
         // Activity (audit) log
         Route::get('/activity', [\App\Http\Controllers\Admin\ActivityController::class, 'index'])->name('activity.index');
 
