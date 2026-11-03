@@ -6,15 +6,34 @@
     </x-slot>
 
     <div class="p-4 sm:p-6 lg:p-8">
+        @if ($needsPayoutPhone)
+            <div class="bg-yellow-50 border border-yellow-200 text-yellow-800 p-4 mb-6 rounded-lg">
+                Add your M-Pesa number on your <a href="{{ route('profile.edit') }}" class="font-semibold underline">profile</a> so we can pay you after your tickets sell.
+            </div>
+        @endif
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+            <div class="bg-white rounded-lg shadow p-5">
+                <p class="text-sm text-gray-500">Held in escrow</p>
+                <p class="mt-1 text-2xl font-bold text-gray-900">KES {{ number_format($earnings['in_escrow']) }}</p>
+                <p class="mt-1 text-xs text-gray-400">Released after each event</p>
+            </div>
+            <div class="bg-white rounded-lg shadow p-5">
+                <p class="text-sm text-gray-500">Ready for payout</p>
+                <p class="mt-1 text-2xl font-bold text-gray-900">KES {{ number_format($earnings['awaiting_payout']) }}</p>
+                <p class="mt-1 text-xs text-gray-400">Being sent to your M-Pesa</p>
+            </div>
+            <div class="bg-white rounded-lg shadow p-5">
+                <p class="text-sm text-gray-500">Paid out</p>
+                <p class="mt-1 text-2xl font-bold text-gray-900">KES {{ number_format($earnings['paid_out']) }}</p>
+                <p class="mt-1 text-xs text-gray-400">After {{ rtrim(rtrim(number_format(config('services.tixswap.commission_percent'), 1), '0'), '.') }}% TixSwap fee</p>
+            </div>
+        </div>
+
         <div class="flex justify-between items-center mb-6">
             <h1 class="text-2xl font-bold text-gray-900">Your Ticket Listings</h1>
         </div>
 
-        @if (session('success'))
-            <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-6 rounded-lg" role="alert">
-                <p>{{ session('success') }}</p>
-            </div>
-        @endif
 
         @if ($tickets->isEmpty())
             <div class="text-center py-16 bg-gray-50 rounded-lg">

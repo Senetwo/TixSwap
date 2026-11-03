@@ -5,11 +5,6 @@
     <div class="p-4 sm:p-6 lg:p-8">
         <h1 class="text-2xl font-bold text-gray-900 mb-6">Review Pending Tickets</h1>
 
-        @if (session('success'))
-            <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-6" role="alert">
-                <p>{{ session('success') }}</p>
-            </div>
-        @endif
 
         <div class="bg-white shadow-md rounded-lg overflow-x-auto">
             <table class="min-w-full divide-y divide-gray-200">

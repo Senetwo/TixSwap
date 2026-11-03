@@ -8,23 +8,26 @@ use App\Models\User;
 class TicketPolicy
 {
     /**
-     * Sellers may edit their own listings until they are sold.
+     * Sellers may edit their own listings until they are sold, and not
+     * while a buyer is in the middle of paying for them.
      */
     public function update(User $user, Ticket $ticket): bool
     {
-        return $user->id === $ticket->user_id && ! $ticket->isSold();
+        return $user->id === $ticket->user_id && $this->isChangeable($ticket);
     }
 
     /**
-     * Sellers may remove their own unsold listings; admins may remove any.
+     * Sellers may remove their own listings; admins may remove any.
+     * Sold or mid-payment tickets can't be deleted by anyone, because
+     * deleting a ticket would also delete its order and payment records.
      */
     public function delete(User $user, Ticket $ticket): bool
     {
-        if ($user->isAdmin()) {
-            return true;
+        if (! $this->isChangeable($ticket)) {
+            return false;
         }
 
-        return $user->id === $ticket->user_id && ! $ticket->isSold();
+        return $user->isAdmin() || $user->id === $ticket->user_id;
     }
 
     /**
@@ -49,5 +52,10 @@ class TicketPolicy
     public function viewProof(User $user, Ticket $ticket): bool
     {
         return $user->isAdmin() || $user->id === $ticket->user_id;
+    }
+
+    private function isChangeable(Ticket $ticket): bool
+    {
+        return ! $ticket->isSold() && ! $ticket->isReserved();
     }
 }

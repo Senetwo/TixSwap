@@ -12,6 +12,7 @@ class Ticket extends Model
     public const STATUS_PENDING = 'pending';
     public const STATUS_APPROVED = 'approved';
     public const STATUS_REJECTED = 'rejected';
+    public const STATUS_RESERVED = 'reserved'; // held for a buyer while they approve the M-Pesa prompt
     public const STATUS_SOLD = 'sold';
 
     /**
@@ -31,6 +32,13 @@ class Ticket extends Model
         'original_vendor',
         'purchase_proof',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'reserved_until' => 'datetime',
+        ];
+    }
 
     public function event()
     {
@@ -53,9 +61,36 @@ class Ticket extends Model
         return $this->belongsTo(User::class, 'buyer_id');
     }
 
+    public function orders()
+    {
+        return $this->hasMany(Order::class);
+    }
+
+    /**
+     * Can be bought right now: approved and unsold, or held by a
+     * reservation that has already run out.
+     */
     public function isAvailable(): bool
     {
-        return $this->status === self::STATUS_APPROVED && $this->buyer_id === null;
+        if ($this->buyer_id !== null) {
+            return false;
+        }
+
+        if ($this->status === self::STATUS_APPROVED) {
+            return true;
+        }
+
+        return $this->status === self::STATUS_RESERVED && $this->reservationExpired();
+    }
+
+    public function isReserved(): bool
+    {
+        return $this->status === self::STATUS_RESERVED && ! $this->reservationExpired();
+    }
+
+    public function reservationExpired(): bool
+    {
+        return $this->reserved_until === null || $this->reserved_until->isPast();
     }
 
     public function isSold(): bool

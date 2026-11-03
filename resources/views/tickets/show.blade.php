@@ -18,62 +18,49 @@
                 <div class="mt-6 border-t pt-4">
                     <div class="flex justify-between items-center text-xl font-bold">
                         <span>Total Price:</span>
-                        <span>KES {{ number_format($ticket->price) }}</span>
+                        <span>KES {{ number_format((int) ceil($ticket->price)) }}</span>
                     </div>
                 </div>
 
-                <!-- Payment Form with M-Pesa mock-up -->
-                <form id="payment-form" action="{{ route('pay') }}" method="POST" class="mt-8 space-y-4">
-                    @csrf
-                    <input type="hidden" name="ticket_id" value="{{ $ticket->id }}">
-                    <div>
-                       <label for="phone_number" class="block text-sm font-medium text-gray-700">M-Pesa Phone Number</label>
-                       <div class="mt-1 relative rounded-md shadow-sm">
-                           <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><span class="text-gray-500 sm:text-sm">+254</span></div>
-                           <input type="text" name="phone_number" id="phone_number" placeholder="712 345 678" required class="pl-12 block w-full rounded-md border-gray-300">
-                       </div>
+                @if ($reserved)
+                    <div class="mt-8 rounded-lg bg-yellow-50 border border-yellow-200 p-4 text-yellow-800">
+                        Someone is paying for this ticket right now. If they don't finish, it will be back on sale within {{ config('services.tixswap.reservation_minutes') }} minutes.
                     </div>
-                    <button type="submit" id="pay-button" class="w-full bg-green-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-green-700">
-                        Pay KES {{ number_format($ticket->price) }}
-                    </button>
-                </form>
-            </div>
-        </div>
-    </div>
+                @else
+                    <form id="payment-form" action="{{ route('pay') }}" method="POST" class="mt-8 space-y-4">
+                        @csrf
+                        <input type="hidden" name="ticket_id" value="{{ $ticket->id }}">
+                        <div>
+                            <label for="phone_number" class="block text-sm font-medium text-gray-700">M-Pesa phone number</label>
+                            <input type="tel" name="phone_number" id="phone_number" inputmode="tel" autocomplete="tel"
+                                   value="{{ old('phone_number') }}" placeholder="0712 345 678" required
+                                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 @error('phone_number') border-red-500 @enderror">
+                            @error('phone_number')
+                                <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                            @enderror
+                        </div>
 
-    <!-- M-Pesa PIN Modal -->
-    <div id="mpesa-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center" style="display: none;">
-        <div class="bg-white rounded-lg shadow-xl p-8 max-w-sm w-full">
-            <h3 class="text-lg font-bold text-center">Enter M-Pesa PIN</h3>
-            <p class="text-center text-sm text-gray-600 mt-2">to pay KES {{ number_format($ticket->price) }} to TixSwap</p>
-            <div class="mt-6">
-                <input type="password" id="mpesa-pin" maxlength="4" class="w-full text-center text-2xl tracking-[1em] p-2 border-2 border-gray-300 rounded-md">
-            </div>
-            <div class="mt-6 grid grid-cols-2 gap-4">
-                <button id="cancel-payment" class="w-full bg-gray-200 py-2 rounded-lg font-semibold hover:bg-gray-300">Cancel</button>
-                <button id="confirm-payment" class="w-full bg-green-600 text-white py-2 rounded-lg font-semibold hover:bg-green-700">OK</button>
+                        <button type="submit" id="pay-button" class="w-full bg-green-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-green-700 disabled:opacity-60">
+                            Pay KES {{ number_format((int) ceil($ticket->price)) }} with M-Pesa
+                        </button>
+
+                        <ul class="text-sm text-gray-600 space-y-1">
+                            <li>📱 You'll get a prompt on your phone. Enter your M-Pesa PIN <strong>there</strong>. TixSwap will never ask for your PIN.</li>
+                            <li>⏱️ The ticket is held for you for {{ config('services.tixswap.reservation_minutes') }} minutes while you pay.</li>
+                            <li>🔒 Your money is held safely until after the event, then released to the seller.</li>
+                        </ul>
+                    </form>
+                @endif
             </div>
         </div>
     </div>
 
     <script>
-        const paymentForm = document.getElementById('payment-form');
-        const mpesaModal = document.getElementById('mpesa-modal');
-        const cancelPaymentButton = document.getElementById('cancel-payment');
-        const confirmPaymentButton = document.getElementById('confirm-payment');
-
-        paymentForm.addEventListener('submit', function(event) {
-            event.preventDefault(); // Prevent the form from submitting immediately
-            mpesaModal.style.display = 'flex'; // Show the PIN pop-up
-        });
-
-        cancelPaymentButton.addEventListener('click', function() {
-            mpesaModal.style.display = 'none'; // Hide the pop-up
-        });
-
-        confirmPaymentButton.addEventListener('click', function() {
-            // When user clicks "OK", submit the original form to the backend
-            paymentForm.submit();
+        // Stop double submissions (each click would send another M-Pesa prompt).
+        document.getElementById('payment-form')?.addEventListener('submit', function () {
+            const button = document.getElementById('pay-button');
+            button.disabled = true;
+            button.textContent = 'Sending M-Pesa prompt…';
         });
     </script>
 </x-tixswap-layout>

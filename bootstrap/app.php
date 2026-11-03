@@ -13,6 +13,9 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
+        // Safaricom can't send a CSRF token; the route has its own secret.
+        $middleware->validateCsrfTokens(except: ['mpesa/callback/*']);
+
         $middleware->alias([
             'isAdmin' => \App\Http\Middleware\IsAdmin::class,
             'isSeller' => \App\Http\Middleware\IsSeller::class,

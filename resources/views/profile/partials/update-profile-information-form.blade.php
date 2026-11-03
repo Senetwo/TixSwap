@@ -47,6 +47,17 @@
             @endif
         </div>
 
+        @if ($user->isSeller())
+            <div>
+                <x-input-label for="payout_phone" :value="__('Payout M-Pesa number')" />
+                <x-text-input id="payout_phone" name="payout_phone" type="tel" class="mt-1 block w-full"
+                              :value="old('payout_phone', $user->payout_phone ? '0'.substr($user->payout_phone, 3) : '')"
+                              placeholder="0712 345 678" autocomplete="tel" />
+                <p class="mt-1 text-sm text-gray-500">{{ __('Your earnings are sent to this number after each event.') }}</p>
+                <x-input-error class="mt-2" :messages="$errors->get('payout_phone')" />
+            </div>
+        @endif
+
         <div class="flex items-center gap-4">
             <x-primary-button>{{ __('Save') }}</x-primary-button>
 

@@ -30,7 +30,18 @@ class ProfileController extends Controller
      */
     public function update(ProfileUpdateRequest $request): RedirectResponse
     {
-        $request->user()->fill($request->validated());
+        $validated = $request->validated();
+
+        // Only sellers have a payout number; store it as 2547XXXXXXXX.
+        if ($request->user()->isSeller() && array_key_exists('payout_phone', $validated)) {
+            $validated['payout_phone'] = $validated['payout_phone']
+                ? \App\Services\Mpesa\PhoneNumber::toMsisdn($validated['payout_phone'])
+                : null;
+        } else {
+            unset($validated['payout_phone']);
+        }
+
+        $request->user()->fill($validated);
 
         if ($request->user()->isDirty('email')) {
             $request->user()->email_verified_at = null; // Ensure 'email_verified_at' is nullable in your migration and User model

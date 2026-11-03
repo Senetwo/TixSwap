@@ -75,12 +75,20 @@ class MarketplaceSecurityTest extends TestCase
 
     public function test_buyer_can_purchase_an_approved_ticket(): void
     {
+        // Default test driver is the fake M-Pesa gateway: payment succeeds
+        // on the first status check.
         $buyer = User::factory()->create();
         $ticket = Ticket::factory()->create();
 
-        $this->actingAs($buyer)
-            ->post(route('pay'), ['ticket_id' => $ticket->id, 'phone_number' => '0712345678'])
-            ->assertRedirect(route('payment.success', $ticket));
+        $response = $this->actingAs($buyer)
+            ->post(route('pay'), ['ticket_id' => $ticket->id, 'phone_number' => '0712345678']);
+
+        $order = $ticket->orders()->firstOrFail();
+        $response->assertRedirect(route('orders.show', $order));
+
+        $this->actingAs($buyer)->getJson(route('orders.status', $order))
+            ->assertOk()
+            ->assertJson(['status' => 'paid', 'redirect' => route('payment.success', $ticket)]);
 
         $ticket->refresh();
         $this->assertSame(Ticket::STATUS_SOLD, $ticket->status);

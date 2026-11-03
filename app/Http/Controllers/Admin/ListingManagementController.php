@@ -40,6 +40,8 @@ class ListingManagementController extends Controller
 
     public function destroy(Ticket $ticket)
     {
+        $this->authorize('delete', $ticket);
+
         TicketController::deleteWithFiles($ticket);
         return back()->with('success', 'Ticket listing has been deleted.');
     }

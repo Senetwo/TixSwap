@@ -19,7 +19,17 @@ class SellerDashboardController extends Controller
             'pending' => (clone $sellerTicketsQuery)->where('status', 'pending')->count(),
             'approved' => (clone $sellerTicketsQuery)->where('status', 'approved')->count(),
             'sold' => (clone $sellerTicketsQuery)->where('status', 'sold')->count(),
-            'total_earnings' => (clone $sellerTicketsQuery)->where('status', 'sold')->sum('price'),
+        ];
+
+        // Money from sales, after TixSwap's commission.
+        $soldOrders = \App\Models\Order::query()
+            ->where('status', \App\Models\Order::STATUS_PAID)
+            ->whereHas('ticket', fn ($q) => $q->where('user_id', $seller->id));
+
+        $earnings = [
+            'in_escrow' => (clone $soldOrders)->where('escrow_status', \App\Models\Order::ESCROW_HELD)->sum('seller_amount'),
+            'awaiting_payout' => $seller->payouts()->where('status', \App\Models\Payout::STATUS_PENDING)->sum('amount'),
+            'paid_out' => $seller->payouts()->where('status', \App\Models\Payout::STATUS_PAID)->sum('amount'),
         ];
 
         // Fetch recent tickets listed by this seller for display.
@@ -31,6 +41,8 @@ class SellerDashboardController extends Controller
 
         return view('seller.dashboard', [
             'stats' => $stats,
+            'earnings' => $earnings,
+            'needsPayoutPhone' => ! $seller->payout_phone,
             'tickets' => $tickets
         ]);
     }

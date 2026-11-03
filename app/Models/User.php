@@ -22,6 +22,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'email',
         'password',
         'role',
+        'payout_phone',
     ];
 
     /**
@@ -77,5 +78,15 @@ class User extends Authenticatable implements MustVerifyEmail
     public function purchasedTickets(): HasMany
     {
         return $this->hasMany(Ticket::class, 'buyer_id');
+    }
+
+    public function orders(): HasMany
+    {
+        return $this->hasMany(Order::class);
+    }
+
+    public function payouts(): HasMany
+    {
+        return $this->hasMany(Payout::class, 'seller_id');
     }
 }

@@ -25,6 +25,21 @@ class ProfileUpdateRequest extends FormRequest
                 'max:255',
                 Rule::unique(User::class)->ignore($this->user()->id),
             ],
+            'payout_phone' => ['nullable', 'string', 'regex:'.\App\Services\Mpesa\PhoneNumber::PATTERN],
+        ];
+    }
+
+    protected function prepareForValidation(): void
+    {
+        if ($this->has('payout_phone')) {
+            $this->merge(['payout_phone' => \App\Services\Mpesa\PhoneNumber::clean($this->input('payout_phone')) ?: null]);
+        }
+    }
+
+    public function messages(): array
+    {
+        return [
+            'payout_phone.regex' => 'Enter a valid Safaricom number, e.g. 0712345678.',
         ];
     }
 }

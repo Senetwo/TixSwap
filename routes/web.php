@@ -1,12 +1,14 @@
 <?php
 
 use App\Http\Controllers\Admin\ListingManagementController;
+use App\Http\Controllers\Admin\PayoutController;
 use App\Http\Controllers\Admin\TicketVerificationController;
 use App\Http\Controllers\Admin\UserManagementController;
 use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\MpesaCallbackController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ProfileController;
@@ -40,10 +42,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Ticket purchase page (only approved, unsold tickets are shown)
     Route::get('/tickets/{ticket}', [TicketController::class, 'show'])->name('tickets.show');
 
-    // Payment (rate limited to slow down abuse)
-    Route::post('/pay', [PaymentController::class, 'processSimulatedPayment'])
+    // M-Pesa checkout (rate limited to slow down abuse)
+    Route::post('/pay', [PaymentController::class, 'checkout'])
         ->middleware('throttle:10,1')
         ->name('pay');
+    Route::get('/orders/{order}', [PaymentController::class, 'show'])->name('orders.show');
+    Route::get('/orders/{order}/status', [PaymentController::class, 'status'])
+        ->middleware('throttle:60,1')
+        ->name('orders.status');
     Route::get('/payment/success/{ticket}', [PaymentController::class, 'paymentSuccess'])->name('payment.success');
 
     // A purchased ticket with its QR code (buyer only)
@@ -76,9 +82,20 @@ Route::middleware(['auth', 'verified'])->group(function () {
         // Ticket Verification
         Route::get('/tickets/verify', [TicketVerificationController::class, 'index'])->name('tickets.index');
         Route::patch('/tickets/{ticket}/approve', [TicketVerificationController::class, 'approve'])->name('tickets.approve');
+        // Payouts & refunds
+        Route::get('/payouts', [PayoutController::class, 'index'])->name('payouts.index');
+        Route::patch('/payouts/{payout}/paid', [PayoutController::class, 'markPaid'])->name('payouts.paid');
+        Route::patch('/orders/{order}/refunded', [PayoutController::class, 'markRefunded'])->name('orders.refunded');
+
         Route::patch('/tickets/{ticket}/reject', [TicketVerificationController::class, 'reject'])->name('tickets.reject');
     });
 });
+
+// Safaricom posts STK push results here. Public, CSRF-exempt (see
+// bootstrap/app.php) and protected by a secret path segment.
+Route::post('/mpesa/callback/{secret}', MpesaCallbackController::class)
+    ->middleware('throttle:120,1')
+    ->name('mpesa.callback');
 
 // Include default auth routes (login, register, password reset, etc.)
 require __DIR__.'/auth.php';

@@ -110,9 +110,13 @@ class TicketController extends Controller
      */
     public function show(Ticket $ticket): View
     {
-        abort_unless($ticket->isAvailable(), 404);
+        // Show reserved tickets too, with a "someone is paying" notice.
+        abort_unless($ticket->isAvailable() || $ticket->isReserved(), 404);
 
-        return view('tickets.show', ['ticket' => $ticket]);
+        return view('tickets.show', [
+            'ticket' => $ticket,
+            'reserved' => $ticket->isReserved(),
+        ]);
     }
 
     /**

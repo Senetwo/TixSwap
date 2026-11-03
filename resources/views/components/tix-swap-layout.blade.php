@@ -41,6 +41,12 @@
         <!-- Main Content (This area will grow to fill the screen) -->
         <main class="flex-grow">
             <div class="mx-auto max-w-7xl py-8 px-4 sm:px-6 lg:px-8">
+                @if (session('success'))
+                    <div class="bg-green-100 border-l-4 border-green-500 text-green-800 p-4 mb-6 rounded-lg" role="status">{{ session('success') }}</div>
+                @endif
+                @if (session('error'))
+                    <div class="bg-red-100 border-l-4 border-red-500 text-red-800 p-4 mb-6 rounded-lg" role="alert">{{ session('error') }}</div>
+                @endif
                {{ $slot }}
             </div>
         </main>
