@@ -17,9 +17,21 @@ Artisan::command('tixswap:release-escrow', function (CheckoutService $checkout) 
     $this->info('Released escrow for '.$checkout->releaseDueEscrow().' order(s).');
 })->purpose('Release escrow after events and create seller payouts');
 
+Artisan::command('tixswap:send-payouts', function (App\Services\PayoutService $payouts) {
+    if (! App\Services\PayoutService::enabled()) {
+        $this->warn('M-Pesa payouts are switched off (MPESA_B2C_ENABLED).');
+
+        return;
+    }
+    [$sent, $failed] = $payouts->sendAllPending();
+    $this->info("Sent {$sent} payout(s); {$failed} failed.");
+})->purpose('Send pending seller payouts via M-Pesa B2C');
+
 // Requires the scheduler on the server: * * * * * php artisan schedule:run
 Schedule::command('tixswap:expire-reservations')->everyMinute()->withoutOverlapping();
 Schedule::command('tixswap:release-escrow')->hourly()->withoutOverlapping();
+Schedule::command('tixswap:send-payouts')->hourly()->withoutOverlapping()
+    ->when(fn () => config('services.mpesa.b2c_enabled') && config('services.mpesa.b2c_auto'));
 
 Artisan::command('tixswap:hash-proofs', function () {
     $count = 0;

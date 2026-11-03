@@ -29,7 +29,7 @@ class AdminDashboardController extends Controller
                 ['Listings to review', Ticket::where('status', Ticket::STATUS_PENDING)->count(), 'admin.tickets.pending', 'clipboard-check'],
                 ['Open disputes', Dispute::where('status', Dispute::STATUS_OPEN)->count(), 'admin.disputes.index', 'scale'],
                 ['Refunds to send', Order::where('status', Order::STATUS_NEEDS_REFUND)->count(), 'admin.payouts.index', 'banknotes'],
-                ['Payouts to send', Payout::where('status', Payout::STATUS_PENDING)->count(), 'admin.payouts.index', 'banknotes'],
+                ['Payouts to send', Payout::whereIn('status', [Payout::STATUS_PENDING, Payout::STATUS_FAILED])->count(), 'admin.payouts.index', 'banknotes'],
             ],
             'recent' => Ticket::with(['event', 'seller'])->latest()->take(6)->get(),
         ]);

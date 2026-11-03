@@ -4,7 +4,7 @@
     $counts = [
         'review' => \App\Models\Ticket::where('status', 'pending')->count(),
         'disputes' => \App\Models\Dispute::where('status', 'open')->count(),
-        'payouts' => \App\Models\Payout::where('status', 'pending')->count()
+        'payouts' => \App\Models\Payout::whereIn('status', ['pending', 'failed'])->count()
             + \App\Models\Order::where('status', 'needs_refund')->count(),
     ];
     $items = [

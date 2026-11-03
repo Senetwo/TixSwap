@@ -26,6 +26,8 @@ class AuditLog extends Model
         'dispute.refunded' => 'decided a dispute for the buyer',
         'dispute.released' => 'decided a dispute for the seller',
         'payout.paid' => 'recorded a payout',
+        'payout.sent_mpesa' => 'sent a payout via M-Pesa',
+        'payout.marked_failed' => 'marked a payout as failed',
         'order.refunded' => 'recorded a refund',
     ];
 

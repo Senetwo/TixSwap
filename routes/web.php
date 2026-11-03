@@ -121,6 +121,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         // Payouts & refunds
         Route::get('/payouts', [PayoutController::class, 'index'])->name('payouts.index');
         Route::patch('/payouts/{payout}/paid', [PayoutController::class, 'markPaid'])->name('payouts.paid');
+        Route::post('/payouts/{payout}/send', [PayoutController::class, 'send'])->name('payouts.send');
+        Route::post('/payouts/send-all', [PayoutController::class, 'sendAll'])->name('payouts.send-all');
+        Route::patch('/payouts/{payout}/failed', [PayoutController::class, 'confirmFailed'])->name('payouts.failed');
         Route::patch('/orders/{order}/refunded', [PayoutController::class, 'markRefunded'])->name('orders.refunded');
 
         Route::patch('/tickets/{ticket}/reject', [TicketVerificationController::class, 'reject'])->name('tickets.reject');
@@ -132,6 +135,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
 Route::post('/mpesa/callback/{secret}', MpesaCallbackController::class)
     ->middleware('throttle:120,1')
     ->name('mpesa.callback');
+Route::post('/mpesa/callback/{secret}/{type}', [MpesaCallbackController::class, 'b2c'])
+    ->whereIn('type', ['b2c-result', 'b2c-timeout'])
+    ->middleware('throttle:120,1')
+    ->name('mpesa.b2c-callback');
 
 // Include default auth routes (login, register, password reset, etc.)
 require __DIR__.'/auth.php';

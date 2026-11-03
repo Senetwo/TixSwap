@@ -8,6 +8,7 @@ use App\Models\Payout;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 /**
@@ -23,7 +24,7 @@ class PayoutController extends Controller
     {
         return view('admin.payouts.index', [
             'pending' => Payout::with(['seller', 'order.ticket.event'])
-                ->where('status', Payout::STATUS_PENDING)
+                ->whereIn('status', [Payout::STATUS_PENDING, Payout::STATUS_FAILED, Payout::STATUS_PROCESSING])
                 ->oldest()
                 ->get(),
             'recent' => Payout::with(['seller', 'order.ticket.event'])
@@ -38,6 +39,7 @@ class PayoutController extends Controller
             'heldInEscrow' => Order::where('status', Order::STATUS_PAID)
                 ->where('escrow_status', Order::ESCROW_HELD)
                 ->sum('amount'),
+            'b2cEnabled' => \App\Services\PayoutService::enabled(),
         ]);
     }
 
@@ -50,12 +52,15 @@ class PayoutController extends Controller
         $updated = DB::transaction(function () use ($payout, $validated) {
             $payout = Payout::whereKey($payout->id)->lockForUpdate()->first();
 
-            if ($payout->status !== Payout::STATUS_PENDING) {
+            // Manual payment is allowed unless it's already paid. (For a
+            // "processing" payout the admin is confirming M-Pesa paid it.)
+            if ($payout->status === Payout::STATUS_PAID) {
                 return false;
             }
 
             $payout->forceFill([
                 'status' => Payout::STATUS_PAID,
+                'method' => $payout->method === 'mpesa_b2c' ? 'mpesa_b2c' : 'manual',
                 'reference' => strtoupper(trim($validated['reference'])),
                 'paid_at' => now(),
             ])->save();
@@ -69,6 +74,41 @@ class PayoutController extends Controller
         }
 
         return back()->with($updated ? 'success' : 'error', $updated ? 'Payout marked as paid.' : 'That payout was already processed.');
+    }
+
+    public function send(Payout $payout, \App\Services\PayoutService $payouts): RedirectResponse
+    {
+        try {
+            $payout = $payouts->send($payout);
+        } catch (\RuntimeException $e) {
+            return back()->with('error', $e->getMessage());
+        }
+
+        return back()->with('success', $payout->status === Payout::STATUS_PAID
+            ? 'Payout sent. M-Pesa receipt '.$payout->reference.'.'
+            : 'Payout sent to M-Pesa. It will be marked paid when M-Pesa confirms.');
+    }
+
+    public function sendAll(\App\Services\PayoutService $payouts): RedirectResponse
+    {
+        if (! \App\Services\PayoutService::enabled()) {
+            return back()->with('error', 'M-Pesa payouts are switched off.');
+        }
+
+        [$sent, $failed] = $payouts->sendAllPending();
+
+        return back()->with($failed ? 'error' : 'success', "Sent {$sent} ".Str::plural('payout', $sent).'.'.($failed ? " {$failed} failed; see the reasons below." : ''));
+    }
+
+    public function confirmFailed(Payout $payout, \App\Services\PayoutService $payouts): RedirectResponse
+    {
+        try {
+            $payouts->confirmFailed($payout);
+        } catch (\RuntimeException $e) {
+            return back()->with('error', $e->getMessage());
+        }
+
+        return back()->with('success', 'Marked as failed. You can send it again.');
     }
 
     public function markRefunded(Request $request, Order $order): RedirectResponse

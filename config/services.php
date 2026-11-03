@@ -56,6 +56,15 @@ return [
         'callback_base_url' => env('MPESA_CALLBACK_BASE_URL'),
         // Secret path segment so random requests can't hit the callback.
         'callback_secret' => env('MPESA_CALLBACK_SECRET'),
+
+        // Automatic seller payouts (B2C). Needs a separate Safaricom approval.
+        'b2c_enabled' => (bool) env('MPESA_B2C_ENABLED', false),
+        // Send payouts automatically when escrow is released (otherwise an admin clicks "Send").
+        'b2c_auto' => (bool) env('MPESA_B2C_AUTO', false),
+        'b2c_shortcode' => env('MPESA_B2C_SHORTCODE'),
+        'b2c_initiator_name' => env('MPESA_B2C_INITIATOR_NAME'),
+        // Encrypted initiator password, generated on the Daraja portal.
+        'b2c_security_credential' => env('MPESA_B2C_SECURITY_CREDENTIAL'),
     ],
 
     /*

@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class Payout extends Model
 {
     public const STATUS_PENDING = 'pending';
+    public const STATUS_PROCESSING = 'processing'; // sent to M-Pesa, waiting for the result
     public const STATUS_PAID = 'paid';
     public const STATUS_FAILED = 'failed';
 
@@ -22,6 +23,7 @@ class Payout extends Model
         return [
             'amount' => 'decimal:2',
             'paid_at' => 'datetime',
+            'raw_result' => 'array',
         ];
     }
 

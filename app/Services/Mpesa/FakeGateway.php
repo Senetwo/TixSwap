@@ -19,6 +19,15 @@ class FakeGateway implements MpesaGateway
         );
     }
 
+    public function b2cPayment(string $msisdn, int $amount, string $originatorConversationId, string $remarks, string $resultUrl, string $timeoutUrl): B2CResponse
+    {
+        return new B2CResponse(
+            conversationId: 'AG_FAKE_'.Str::upper(Str::random(12)),
+            originatorConversationId: $originatorConversationId,
+            immediateResult: new B2CResult($originatorConversationId, 0, 'Simulated payout (MPESA_DRIVER=fake).', 'FAKE'.Str::upper(Str::random(8)), $amount),
+        );
+    }
+
     public function query(string $checkoutRequestId): ?StkResult
     {
         return new StkResult(

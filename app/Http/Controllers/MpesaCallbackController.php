@@ -36,4 +36,29 @@ class MpesaCallbackController extends Controller
         // Always acknowledge, otherwise Safaricom keeps retrying.
         return response()->json(['ResultCode' => 0, 'ResultDesc' => 'Accepted']);
     }
+
+    /**
+     * B2C payout result / queue timeout.
+     */
+    public function b2c(Request $request, string $secret, string $type, \App\Services\PayoutService $payouts): JsonResponse
+    {
+        $expected = (string) config('services.mpesa.callback_secret');
+
+        if ($expected === '' || ! hash_equals($expected, $secret)) {
+            abort(404);
+        }
+
+        if ($type === 'b2c-timeout') {
+            $id = $request->input('Result.OriginatorConversationID') ?? $request->input('OriginatorConversationID');
+            if ($id) {
+                $payouts->markTimedOut((string) $id);
+            }
+        } elseif ($result = \App\Services\Mpesa\B2CResult::fromCallback($request->json()->all())) {
+            $payouts->applyResult($result);
+        } else {
+            Log::warning('Malformed B2C callback', ['body' => $request->getContent()]);
+        }
+
+        return response()->json(['ResultCode' => 0, 'ResultDesc' => 'Accepted']);
+    }
 }

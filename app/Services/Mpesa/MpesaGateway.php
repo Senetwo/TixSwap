@@ -19,4 +19,12 @@ interface MpesaGateway
      * Returns null while the buyer still hasn't responded.
      */
     public function query(string $checkoutRequestId): ?StkResult;
+
+    /**
+     * Send money from the business account to a phone (B2C).
+     * The result arrives later on $resultUrl (or immediately for the fake driver).
+     *
+     * @throws MpesaException when Safaricom can't be reached or rejects the request
+     */
+    public function b2cPayment(string $msisdn, int $amount, string $originatorConversationId, string $remarks, string $resultUrl, string $timeoutUrl): B2CResponse;
 }

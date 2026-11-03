@@ -79,6 +79,38 @@ class DarajaGateway implements MpesaGateway
         );
     }
 
+    public function b2cPayment(string $msisdn, int $amount, string $originatorConversationId, string $remarks, string $resultUrl, string $timeoutUrl): B2CResponse
+    {
+        foreach (['b2c_initiator_name', 'b2c_security_credential'] as $key) {
+            if (empty($this->config[$key])) {
+                throw new MpesaException('M-Pesa payouts are not configured: set MPESA_'.strtoupper($key).' in .env');
+            }
+        }
+
+        $response = $this->send('/mpesa/b2c/v3/paymentrequest', [
+            'OriginatorConversationID' => $originatorConversationId,
+            'InitiatorName' => $this->config['b2c_initiator_name'],
+            'SecurityCredential' => $this->config['b2c_security_credential'],
+            'CommandID' => 'BusinessPayment',
+            'Amount' => $amount,
+            'PartyA' => $this->config['b2c_shortcode'] ?: $this->config['shortcode'],
+            'PartyB' => $msisdn,
+            'Remarks' => mb_substr($remarks, 0, 100),
+            'QueueTimeOutURL' => $timeoutUrl,
+            'ResultURL' => $resultUrl,
+            'Occasion' => 'TixSwap payout',
+        ]);
+
+        if (($response['ResponseCode'] ?? null) !== '0') {
+            throw new MpesaException('M-Pesa rejected the payout: '.($response['errorMessage'] ?? $response['ResponseDescription'] ?? 'unknown error'));
+        }
+
+        return new B2CResponse(
+            conversationId: (string) ($response['ConversationID'] ?? ''),
+            originatorConversationId: (string) ($response['OriginatorConversationID'] ?? $originatorConversationId),
+        );
+    }
+
     private function send(string $path, array $payload): array
     {
         try {
