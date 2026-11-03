@@ -22,6 +22,11 @@
                         </div>
                     </div>
 
+                    @if ($order->ticket?->checked_in_at)
+                        <x-ui.alert tone="info" class="mt-4">
+                            Our scanner admitted this ticket at {{ $order->ticket->checked_in_at->format('D j M, g:i A') }}{{ $order->ticket->checkedInBy ? ' (scanned by '.$order->ticket->checkedInBy->name.')' : '' }}.
+                        </x-ui.alert>
+                    @endif
                     <blockquote class="mt-4 whitespace-pre-line rounded-xl bg-gray-50 p-4 text-sm text-gray-800 ring-1 ring-gray-100">{{ $dispute->details }}</blockquote>
 
                     <dl class="mt-4 grid gap-4 text-sm sm:grid-cols-2">

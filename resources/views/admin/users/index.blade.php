@@ -23,7 +23,20 @@
                                 </div>
                             </td>
                             <td class="table-td">
-                                <x-ui.badge :tone="['admin' => 'brand', 'seller' => 'blue'][$user->role] ?? 'gray'">{{ ucfirst($user->role) }}</x-ui.badge>
+                                @if ($user->isAdmin())
+                                    <x-ui.badge tone="brand">Admin</x-ui.badge>
+                                @else
+                                    <form method="POST" action="{{ route('admin.users.role', $user) }}">
+                                        @csrf
+                                        @method('PATCH')
+                                        <label for="role-{{ $user->id }}" class="sr-only">Role for {{ $user->name }}</label>
+                                        <select id="role-{{ $user->id }}" name="role" onchange="this.form.submit()" class="form-control w-auto py-1.5 text-sm">
+                                            @foreach (['buyer' => 'Buyer', 'seller' => 'Seller', 'scanner' => 'Gate staff'] as $value => $label)
+                                                <option value="{{ $value }}" @selected($user->role === $value)>{{ $label }}</option>
+                                            @endforeach
+                                        </select>
+                                    </form>
+                                @endif
                             </td>
                             <td class="table-td whitespace-nowrap text-gray-500">{{ $user->created_at->format('M j, Y') }}</td>
                             <td class="table-td text-right">

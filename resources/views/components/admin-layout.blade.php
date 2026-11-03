@@ -15,6 +15,7 @@
         ['Payouts & refunds', 'admin.payouts.index', 'admin.payouts.*', 'banknotes', $counts['payouts']],
         ['Users', 'admin.users.index', 'admin.users.*', 'users', null],
         ['Activity log', 'admin.activity.index', 'admin.activity.*', 'document', null],
+        ['Gate scanner', 'scan.index', 'scan.*', 'ticket', null],
     ];
 @endphp
 <!DOCTYPE html>

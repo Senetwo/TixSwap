@@ -15,6 +15,7 @@ class DashboardController extends Controller
         return match (true) {
             $request->user()->isAdmin() => redirect()->route('admin.dashboard'),
             $request->user()->isSeller() => redirect()->route('seller.dashboard'),
+            $request->user()->isScanner() => redirect()->route('scan.index'),
             default => redirect()->route('home', $request->only('search')),
         };
     }

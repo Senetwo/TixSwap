@@ -77,6 +77,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Private proof-of-purchase file (seller who uploaded it, or an admin)
     Route::get('/tickets/{ticket}/proof', [TicketController::class, 'showProof'])->name('tickets.proof');
 
+    // Gate scanning (gate staff and admins)
+    Route::middleware('canScan')->group(function () {
+        Route::get('/scan', [\App\Http\Controllers\ScannerController::class, 'index'])->name('scan.index');
+        Route::post('/scan', [\App\Http\Controllers\ScannerController::class, 'check'])->middleware('throttle:120,1')->name('scan.check');
+    });
+
     // Seller-specific routes
     Route::middleware('isSeller')->prefix('seller')->name('seller.')->group(function () {
         Route::get('/dashboard', [SellerDashboardController::class, 'index'])->name('dashboard');
@@ -91,6 +97,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         // User Management
         Route::get('/users', [UserManagementController::class, 'index'])->name('users.index');
         Route::delete('/users/{user}', [UserManagementController::class, 'destroy'])->name('users.destroy');
+        Route::patch('/users/{user}/role', [UserManagementController::class, 'updateRole'])->name('users.role');
 
         // Listing Management
         Route::get('/tickets/pending', [TicketVerificationController::class, 'index'])->name('tickets.pending');

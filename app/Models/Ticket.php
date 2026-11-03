@@ -38,6 +38,7 @@ class Ticket extends Model
     {
         return [
             'reserved_until' => 'datetime',
+            'checked_in_at' => 'datetime',
         ];
     }
 
@@ -60,6 +61,11 @@ class Ticket extends Model
     public function buyer()
     {
         return $this->belongsTo(User::class, 'buyer_id');
+    }
+
+    public function checkedInBy()
+    {
+        return $this->belongsTo(User::class, 'checked_in_by');
     }
 
     public function orders()

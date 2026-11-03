@@ -18,6 +18,8 @@
                 @if ($dispute)
                     @php([$label, $tone] = ['open' => ['Problem reported', 'amber'], 'refunded' => ['Refund approved', 'green'], 'released' => ['Report closed', 'gray']][$dispute->status] ?? ['Reported', 'gray'])
                     <x-ui.badge :tone="$tone" dot>{{ $label }}</x-ui.badge>
+                @elseif ($ticket->checked_in_at)
+                    <x-ui.badge dot>Used · {{ $ticket->checked_in_at->format('M j, g:i A') }}</x-ui.badge>
                 @elseif ($date->isFuture())
                     <x-ui.badge tone="green" dot>Valid ticket</x-ui.badge>
                 @else

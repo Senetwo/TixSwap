@@ -43,7 +43,11 @@
 
     <div class="flex flex-col items-center p-6">
         <div class="rounded-xl bg-white p-2 ring-1 ring-gray-200 [&>svg]:h-48 [&>svg]:w-48">{!! $qrCode !!}</div>
-        <p class="mt-3 text-center text-xs text-gray-500">Show this code at the entrance</p>
+        @if ($ticket->checked_in_at)
+            <p class="mt-3 rounded-full bg-gray-100 px-3 py-1 text-center text-xs font-semibold text-gray-700">Scanned at the entrance {{ $ticket->checked_in_at->format('D j M, g:i A') }}</p>
+        @else
+            <p class="mt-3 text-center text-xs text-gray-500">Show this code at the entrance</p>
+        @endif
         <p class="mt-1 break-all text-center font-mono text-[11px] text-gray-400">{{ $ticket->validation_code }}</p>
     </div>
 </div>

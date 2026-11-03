@@ -69,6 +69,17 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->role === 'seller';
     }
 
+    /** Gate staff who scan tickets at the entrance. */
+    public function isScanner(): bool
+    {
+        return $this->role === 'scanner';
+    }
+
+    public function canScanTickets(): bool
+    {
+        return $this->isScanner() || $this->isAdmin();
+    }
+
     public function isBuyer(): bool
     {
         return $this->role === 'buyer';

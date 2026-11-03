@@ -22,6 +22,7 @@ class AuditLog extends Model
         'listing.updated' => 'edited a listing',
         'listing.deleted' => 'deleted a listing',
         'user.deleted' => 'deleted a user',
+        'user.role_changed' => 'changed a user\'s role',
         'dispute.refunded' => 'decided a dispute for the buyer',
         'dispute.released' => 'decided a dispute for the seller',
         'payout.paid' => 'recorded a payout',

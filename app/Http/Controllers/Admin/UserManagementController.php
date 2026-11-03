@@ -17,6 +17,25 @@ class UserManagementController extends Controller
         return view('admin.users.index', ['users' => $users]);
     }
 
+    /**
+     * Switch a non-admin between buyer, seller and gate staff.
+     * (Admins can't be created from the UI.)
+     */
+    public function updateRole(Request $request, User $user): RedirectResponse
+    {
+        $validated = $request->validate(['role' => 'required|in:buyer,seller,scanner']);
+
+        if ($user->isAdmin()) {
+            return back()->with('error', 'Admin roles can\'t be changed here.');
+        }
+
+        $from = $user->role;
+        $user->forceFill(['role' => $validated['role']])->save();
+        \App\Models\AuditLog::record('user.role_changed', $user, ['from' => $from, 'to' => $validated['role']]);
+
+        return back()->with('success', $user->name.' is now '.($validated['role'] === 'scanner' ? 'gate staff' : 'a '.$validated['role']).'.');
+    }
+
     public function destroy(Request $request, User $user): RedirectResponse
     {
         if ($user->is($request->user())) {
