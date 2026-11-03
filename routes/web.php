@@ -68,6 +68,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->middleware('throttle:5,1')
         ->name('disputes.store');
 
+    // Rate the seller after the event
+    Route::post('/orders/{order}/rating', [\App\Http\Controllers\RatingController::class, 'store'])->name('ratings.store');
+
     // A purchased ticket with its QR code (buyer only)
     Route::get('/my-tickets/{ticket}', [TicketController::class, 'showPurchasedTicket'])->name('tickets.purchased.show');
 
@@ -103,6 +106,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/disputes', [AdminDisputeController::class, 'index'])->name('disputes.index');
         Route::patch('/disputes/{dispute}', [AdminDisputeController::class, 'resolve'])->name('disputes.resolve');
         Route::get('/disputes/{dispute}/evidence', [AdminDisputeController::class, 'evidence'])->name('disputes.evidence');
+
+        // Activity (audit) log
+        Route::get('/activity', [\App\Http\Controllers\Admin\ActivityController::class, 'index'])->name('activity.index');
 
         // Payouts & refunds
         Route::get('/payouts', [PayoutController::class, 'index'])->name('payouts.index');

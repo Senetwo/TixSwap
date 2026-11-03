@@ -385,6 +385,12 @@ class CheckoutService
         $hours = (int) config('services.tixswap.escrow_release_hours_after_event', 24);
         $eventDate = $ticket->event?->date ? Carbon::parse($ticket->event->date) : now();
 
+        // New sellers' money is held longer, giving buyers more time to
+        // report a problem before a first-time seller is paid.
+        if ($ticket->seller?->isNewSeller()) {
+            $hours += (int) config('services.tixswap.new_seller_extra_hold_hours', 48);
+        }
+
         return ($eventDate->isPast() ? now() : $eventDate)->copy()->addHours($hours);
     }
 }

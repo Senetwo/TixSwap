@@ -64,6 +64,7 @@ class PayoutController extends Controller
         });
 
         if ($updated) {
+            \App\Models\AuditLog::record('payout.paid', $payout, ['amount' => $payout->amount, 'reference' => strtoupper(trim($validated['reference']))]);
             \App\Support\Notifier::send($payout->seller, new \App\Notifications\PayoutSent($payout->fresh(['order.ticket.event'])));
         }
 
@@ -99,6 +100,7 @@ class PayoutController extends Controller
         }
 
         if ($updated) {
+            \App\Models\AuditLog::record('order.refunded', $order, ['amount' => $order->amount, 'reference' => strtoupper(trim($request->input('reference')))]);
             \App\Support\Notifier::send($order->buyer, new \App\Notifications\RefundSent($order->fresh(['ticket.event']), strtoupper(trim($request->input('reference')))));
         }
 

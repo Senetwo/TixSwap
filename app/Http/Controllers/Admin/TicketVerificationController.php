@@ -36,6 +36,7 @@ class TicketVerificationController extends Controller
         abort_unless($ticket->status === Ticket::STATUS_PENDING, 422, 'Only pending tickets can be approved.');
 
         $ticket->forceFill(['status' => Ticket::STATUS_APPROVED, 'admin_notes' => null])->save();
+        \App\Models\AuditLog::record('listing.approved', $ticket);
         \App\Support\Notifier::send($ticket->seller, new \App\Notifications\ListingApproved($ticket));
         // You could add a notification to the seller here
         return redirect()->route('admin.tickets.pending')->with('success', 'Ticket has been approved.');
@@ -56,6 +57,7 @@ class TicketVerificationController extends Controller
             'status' => Ticket::STATUS_REJECTED,
             'admin_notes' => $request->rejection_reason,
         ])->save();
+        \App\Models\AuditLog::record('listing.rejected', $ticket, ['reason' => $request->rejection_reason]);
         \App\Support\Notifier::send($ticket->seller, new \App\Notifications\ListingRejected($ticket));
 
         return redirect()->route('admin.tickets.pending')->with('success', 'Ticket has been rejected.');

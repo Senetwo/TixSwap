@@ -82,6 +82,8 @@ class DisputeService
                 'resolved_at' => now(),
             ])->save();
 
+            \App\Models\AuditLog::record($decision === 'refund' ? 'dispute.refunded' : 'dispute.released', $dispute, ['order_id' => $order->id, 'note' => $note]);
+
             if ($decision === 'refund') {
                 $order->forceFill([
                     'status' => Order::STATUS_NEEDS_REFUND,

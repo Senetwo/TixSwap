@@ -27,6 +27,7 @@ class UserManagementController extends Controller
             return back()->with('error', 'Admin accounts cannot be deleted from this screen.');
         }
 
+        \App\Models\AuditLog::record('user.deleted', $user, ['name' => $user->name, 'email' => $user->email, 'role' => $user->role]);
         $user->delete();
 
         return back()->with('success', 'User deleted.');

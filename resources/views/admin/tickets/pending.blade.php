@@ -28,7 +28,14 @@
                             <div><dt class="text-gray-500">Seat</dt><dd class="font-medium text-gray-900">{{ $ticket->seat_details }}</dd></div>
                             <div><dt class="text-gray-500">Bought from</dt><dd class="font-medium text-gray-900">{{ $ticket->original_vendor ?: 'N/A' }}</dd></div>
                             <div><dt class="text-gray-500">Ticket no.</dt><dd class="font-mono text-gray-900">{!! $ticket->ticket_reference ? e($ticket->ticket_reference) : '<span class="font-sans text-amber-700">None given</span>' !!}</dd></div>
-                            <div><dt class="text-gray-500">Seller</dt><dd class="truncate font-medium text-gray-900" title="{{ $ticket->seller->email }}">{{ $ticket->seller->name }}</dd></div>
+                            <div>
+                                <dt class="text-gray-500">Seller</dt>
+                                <dd class="truncate font-medium text-gray-900" title="{{ $ticket->seller->email }}">{{ $ticket->seller->name }}</dd>
+                                @php($st = $ticket->seller->sellerStats())
+                                <dd class="text-xs {{ $st['refunded'] ? 'font-medium text-red-700' : 'text-gray-500' }}">
+                                    {{ $st['completed'] }} completed {{ Str::plural('sale', $st['completed']) }}@if ($st['refunded']) · {{ $st['refunded'] }} refunded @endif @if ($st['ratings']) · {{ $st['percent'] }}% 👍 @endif
+                                </dd>
+                            </div>
                         </dl>
 
                         @foreach ($dups as $dup)

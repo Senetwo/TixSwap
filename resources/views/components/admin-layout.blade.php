@@ -14,6 +14,7 @@
         ['Disputes', 'admin.disputes.index', 'admin.disputes.*', 'scale', $counts['disputes']],
         ['Payouts & refunds', 'admin.payouts.index', 'admin.payouts.*', 'banknotes', $counts['payouts']],
         ['Users', 'admin.users.index', 'admin.users.*', 'users', null],
+        ['Activity log', 'admin.activity.index', 'admin.activity.*', 'document', null],
     ];
 @endphp
 <!DOCTYPE html>

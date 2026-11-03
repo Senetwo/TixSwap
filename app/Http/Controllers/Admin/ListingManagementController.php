@@ -38,7 +38,9 @@ class ListingManagementController extends Controller
             'seat_details' => 'required|string|max:255',
         ]);
 
+        $before = $ticket->only(['price', 'seat_details']);
         $ticket->update($validated);
+        \App\Models\AuditLog::record('listing.updated', $ticket, ['before' => $before, 'after' => $ticket->only(['price', 'seat_details'])]);
         return redirect()->route('admin.listings.index')->with('success', 'Listing updated.');
     }
 
@@ -46,6 +48,7 @@ class ListingManagementController extends Controller
     {
         $this->authorize('delete', $ticket);
 
+        \App\Models\AuditLog::record('listing.deleted', $ticket, ['event' => $ticket->event?->name, 'seller' => $ticket->seller?->email, 'price' => $ticket->price]);
         TicketController::deleteWithFiles($ticket);
         return back()->with('success', 'Ticket listing has been deleted.');
     }

@@ -31,6 +31,7 @@
                             <div class="min-w-0">
                                 <dt class="text-sm text-gray-500">{{ $label }}</dt>
                                 <dd class="font-medium text-gray-900">{{ $value }}</dd>
+                                @if ($icon === 'user') <dd class="mt-1.5"><x-seller-trust :seller="$ticket->seller" /></dd> @endif
                             </div>
                         </div>
                     @endforeach

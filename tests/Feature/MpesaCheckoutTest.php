@@ -208,7 +208,8 @@ class MpesaCheckoutTest extends TestCase
         $ticket->refresh();
         $this->assertSame(Order::STATUS_PAID, $order->status);
         $this->assertSame(Order::ESCROW_HELD, $order->escrow_status);
-        $this->assertTrue($order->escrow_release_at->equalTo(\Carbon\Carbon::parse($ticket->event->date)->addHours(24)));
+        // 24h after the event, plus 48h because this is a new seller.
+        $this->assertTrue($order->escrow_release_at->equalTo(\Carbon\Carbon::parse($ticket->event->date)->addHours(24 + 48)));
         $this->assertSame('TKX123ABC', $order->payment->transaction_id);
         $this->assertSame(Ticket::STATUS_SOLD, $ticket->status);
         $this->assertSame($buyer->id, $ticket->buyer_id);

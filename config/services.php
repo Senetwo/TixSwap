@@ -85,5 +85,9 @@ return [
             : (float) env('TIXSWAP_MAX_MARKUP_PERCENT', 20),
         'reservation_minutes' => (int) env('TIXSWAP_RESERVATION_MINUTES', 10),
         'escrow_release_hours_after_event' => (int) env('TIXSWAP_ESCROW_RELEASE_HOURS', 24),
+        // Sellers with fewer completed sales than this are "new": their
+        // payouts are held for extra hours, and they can't be "trusted".
+        'trusted_seller_sales' => (int) env('TIXSWAP_TRUSTED_SELLER_SALES', 3),
+        'new_seller_extra_hold_hours' => (int) env('TIXSWAP_NEW_SELLER_EXTRA_HOLD_HOURS', 48),
     ],
 ];

@@ -54,7 +54,7 @@
                             <a href="{{ route('tickets.show', $ticket) }}" class="group flex items-center gap-4 rounded-2xl bg-white p-4 shadow-card ring-1 ring-gray-200/70 transition hover:shadow-lift hover:ring-gray-300">
                                 <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-600"><x-ui.icon name="ticket" /></span>
                                 <div class="min-w-0 flex-1">
-                                    <p class="truncate font-semibold text-gray-900">{{ $ticket->seat_details }}</p>
+                                    <p class="flex flex-wrap items-center gap-2 font-semibold text-gray-900">{{ $ticket->seat_details }} @if ($ticket->seller?->isTrustedSeller()) <x-ui.badge tone="green">Trusted seller</x-ui.badge> @endif</p>
                                     <p class="mt-0.5 flex items-center gap-1.5 truncate text-sm text-gray-500">
                                         <x-ui.icon name="shield-check" class="h-4 w-4 text-green-600" /> Verified · sold by {{ Str::of($ticket->seller?->name ?? 'a fan')->explode(' ')->first() }}
                                         @if ($ticket->face_value && $ticket->markupPercent() <= 0) · <span class="font-medium text-green-700">{{ $ticket->markupPercent() === 0 ? 'At face value' : 'Below face value' }}</span> @endif

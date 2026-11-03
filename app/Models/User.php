@@ -30,6 +30,9 @@ class User extends Authenticatable implements MustVerifyEmail
      *
      * @var array<int, string>
      */
+    /** @var array<string, int|null>|null */
+    private ?array $sellerStatsCache = null;
+
     protected $hidden = [
         'password',
         'remember_token',
@@ -91,6 +94,55 @@ class User extends Authenticatable implements MustVerifyEmail
     public function orders(): HasMany
     {
         return $this->hasMany(Order::class);
+    }
+
+    public function ratingsReceived(): HasMany
+    {
+        return $this->hasMany(SellerRating::class, 'seller_id');
+    }
+
+    /**
+     * Seller track record, cached per request.
+     *
+     * @return array{completed: int, refunded: int, positive: int, ratings: int, percent: ?int}
+     */
+    public function sellerStats(): array
+    {
+        return $this->sellerStatsCache ??= (function () {
+            $sold = Order::whereHas('ticket', fn ($q) => $q->where('user_id', $this->id));
+            $positive = $this->ratingsReceived()->where('positive', true)->count();
+            $ratings = $this->ratingsReceived()->count();
+
+            return [
+                // Sales whose money has been released to the seller.
+                'completed' => (clone $sold)->where('escrow_status', Order::ESCROW_RELEASED)->count(),
+                // Sales refunded because the buyer's dispute was upheld.
+                'refunded' => (clone $sold)->whereHas('dispute', fn ($q) => $q->where('status', Dispute::STATUS_REFUNDED))->count(),
+                'positive' => $positive,
+                'ratings' => $ratings,
+                'percent' => $ratings ? (int) round($positive / $ratings * 100) : null,
+            ];
+        })();
+    }
+
+    /**
+     * Fewer than N completed sales: their payouts are held longer.
+     */
+    public function isNewSeller(): bool
+    {
+        return $this->sellerStats()['completed'] < (int) config('services.tixswap.trusted_seller_sales', 3);
+    }
+
+    /**
+     * Enough completed sales, no upheld disputes, and mostly positive ratings.
+     */
+    public function isTrustedSeller(): bool
+    {
+        $stats = $this->sellerStats();
+
+        return ! $this->isNewSeller()
+            && $stats['refunded'] === 0
+            && ($stats['percent'] === null || $stats['percent'] >= 90);
     }
 
     public function payouts(): HasMany

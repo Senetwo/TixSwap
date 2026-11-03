@@ -8,5 +8,6 @@
     <div class="mx-auto mt-6 max-w-sm space-y-6">
         @include('partials.save-ticket', ['filename' => 'TixSwap-ticket-'.$ticket->id.'.png'])
         @include('disputes._status', ['order' => $order])
+        @include('ratings._form', ['order' => $order])
     </div>
 </x-tixswap-layout>
