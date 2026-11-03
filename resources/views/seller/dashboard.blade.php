@@ -17,6 +17,9 @@
                 <p class="text-sm text-gray-500">Held in escrow</p>
                 <p class="mt-1 text-2xl font-bold text-gray-900">KES {{ number_format($earnings['in_escrow']) }}</p>
                 <p class="mt-1 text-xs text-gray-400">Released after each event</p>
+                @if ($earnings['disputed'] > 0)
+                    <p class="mt-1 text-xs font-semibold text-yellow-700">KES {{ number_format($earnings['disputed']) }} on hold: buyer reported a problem</p>
+                @endif
             </div>
             <div class="bg-white rounded-lg shadow p-5">
                 <p class="text-sm text-gray-500">Ready for payout</p>
@@ -73,6 +76,9 @@
                             <p class="text-xs text-gray-400 mt-1">Listed on {{ $ticket->created_at->format('M d, Y') }}</p>
                             
                             <div class="mt-4 pt-4 border-t">
+                                @if (in_array($ticket->id, $disputedTicketIds))
+                                    <p class="mb-3 text-sm text-yellow-800 bg-yellow-50 rounded p-2"><strong>Buyer reported a problem.</strong> Payment on hold while we review. We may contact you.</p>
+                                @endif
                                 @if($ticket->status === 'rejected' && $ticket->admin_notes)
                                     <p class="mb-3 text-sm text-red-700"><strong>Rejected:</strong> {{ $ticket->admin_notes }}</p>
                                 @endif

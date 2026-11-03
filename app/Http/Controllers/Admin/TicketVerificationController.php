@@ -21,7 +21,11 @@ class TicketVerificationController extends Controller
                                 ->latest()
                                 ->get();
 
-        return view('admin.tickets.pending', ['tickets' => $pendingTickets]);
+        return view('admin.tickets.pending', [
+            'tickets' => $pendingTickets,
+            // Other listings with the same proof file or ticket number.
+            'duplicates' => $pendingTickets->mapWithKeys(fn (Ticket $t) => [$t->id => $t->possibleDuplicates()]),
+        ]);
     }
 
     /**

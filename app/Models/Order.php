@@ -24,6 +24,7 @@ class Order extends Model
     public const ESCROW_HELD = 'held';
     public const ESCROW_RELEASED = 'released';
     public const ESCROW_REFUNDED = 'refunded';
+    public const ESCROW_DISPUTED = 'disputed'; // frozen until an admin decides
 
     /**
      * Only the buyer and ticket are set from controller input; every money
@@ -82,6 +83,22 @@ class Order extends Model
     public function payout(): HasOne
     {
         return $this->hasOne(Payout::class);
+    }
+
+    public function dispute(): HasOne
+    {
+        return $this->hasOne(Dispute::class);
+    }
+
+    /**
+     * The buyer can still report a problem: paid, money still in escrow,
+     * and no dispute opened yet.
+     */
+    public function canBeDisputed(): bool
+    {
+        return $this->isPaid()
+            && $this->escrow_status === self::ESCROW_HELD
+            && ! $this->dispute()->exists();
     }
 
     public function isPending(): bool

@@ -93,6 +93,48 @@ class Ticket extends Model
         return $this->reserved_until === null || $this->reserved_until->isPast();
     }
 
+    /**
+     * Normalise a ticket/order number so "ab-123 45" and "AB12345" match.
+     */
+    public static function normaliseReference(?string $reference): ?string
+    {
+        $clean = strtoupper(preg_replace('/[^A-Za-z0-9]/', '', (string) $reference));
+
+        return $clean === '' ? null : $clean;
+    }
+
+    /**
+     * Other listings that look like the same ticket: the same proof file
+     * or the same ticket/order number. Rejected listings are ignored.
+     *
+     * @return \Illuminate\Support\Collection<int, array{ticket: Ticket, match: string, other_seller: bool}>
+     */
+    public function possibleDuplicates(): \Illuminate\Support\Collection
+    {
+        if (! $this->proof_hash && ! $this->ticket_reference) {
+            return collect();
+        }
+
+        return static::query()
+            ->with('seller')
+            ->whereKeyNot($this->id)
+            ->where('status', '!=', self::STATUS_REJECTED)
+            ->where(function ($q) {
+                if ($this->proof_hash) {
+                    $q->orWhere('proof_hash', $this->proof_hash);
+                }
+                if ($this->ticket_reference) {
+                    $q->orWhere('ticket_reference', $this->ticket_reference);
+                }
+            })
+            ->get()
+            ->map(fn (Ticket $other) => [
+                'ticket' => $other,
+                'match' => $this->proof_hash && $other->proof_hash === $this->proof_hash ? 'proof' : 'reference',
+                'other_seller' => $other->user_id !== $this->user_id,
+            ]);
+    }
+
     public function isSold(): bool
     {
         return $this->status === self::STATUS_SOLD;

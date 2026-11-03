@@ -29,8 +29,21 @@
                             <div class="text-sm text-gray-500">Seat: {{ $ticket->seat_details }}</div>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">KES {{ number_format($ticket->price) }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap">
+                        <td class="px-6 py-4 align-top">
                             <a href="{{ route('tickets.proof', $ticket) }}" target="_blank" class="text-blue-600 hover:text-blue-900 hover:underline">View Proof</a>
+                            <div class="mt-1 text-xs text-gray-500">
+                                Ref: @if ($ticket->ticket_reference)<span class="font-mono text-gray-800">{{ $ticket->ticket_reference }}</span>@else<span class="text-yellow-700">none given</span>@endif
+                            </div>
+                            @foreach ($duplicates[$ticket->id] ?? [] as $dup)
+                                <div @class([
+                                    'mt-2 rounded px-2 py-1 text-xs max-w-xs whitespace-normal',
+                                    'bg-red-100 text-red-800' => $dup['other_seller'],
+                                    'bg-yellow-100 text-yellow-800' => ! $dup['other_seller'],
+                                ])>
+                                    ⚠️ Same {{ $dup['match'] === 'proof' ? 'proof file' : 'ticket number' }} as listing #{{ $dup['ticket']->id }}
+                                    ({{ $dup['other_seller'] ? 'different seller: '.$dup['ticket']->seller?->name : 'same seller' }}, {{ $dup['ticket']->status }})
+                                </div>
+                            @endforeach
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
                             <form action="{{ route('admin.tickets.approve', $ticket) }}" method="POST" class="inline">

@@ -32,12 +32,28 @@ class TicketController extends Controller
     public function store(StoreTicketRequest $request): RedirectResponse
     {
         $validated = $request->validated();
+        $proofHash = hash_file('sha256', $request->file('purchase_proof')->getRealPath());
+
+        // The exact same proof file already used by a different seller is
+        // a strong sign of a copied receipt: refuse the listing.
+        $copiedFromSomeoneElse = Ticket::where('proof_hash', $proofHash)
+            ->where('user_id', '!=', Auth::id())
+            ->where('status', '!=', Ticket::STATUS_REJECTED)
+            ->exists();
+
+        if ($copiedFromSomeoneElse) {
+            Log::warning('Listing blocked: proof of purchase already used by another seller', ['user_id' => Auth::id(), 'proof_hash' => $proofHash]);
+
+            return back()->withInput()->withErrors([
+                'purchase_proof' => 'This proof of purchase has already been used for another listing. If you think this is a mistake, contact support@tixswap.com.',
+            ]);
+        }
 
         try {
             $eventImagePath = $request->file('event_image')->store('event_images', 'public');
             $purchaseProofPath = $request->file('purchase_proof')->store('purchase_proofs', self::PROOF_DISK);
 
-            DB::transaction(function () use ($validated, $eventImagePath, $purchaseProofPath) {
+            DB::transaction(function () use ($validated, $eventImagePath, $purchaseProofPath, $proofHash) {
                 $event = Event::create([
                     'name' => $validated['event_name'],
                     'location' => $validated['location'],
@@ -54,7 +70,11 @@ class TicketController extends Controller
                     'original_vendor' => $validated['original_vendor'] ?? 'N/A',
                     'purchase_proof' => $purchaseProofPath,
                 ]);
-                $ticket->forceFill(['status' => Ticket::STATUS_PENDING])->save();
+                $ticket->forceFill([
+                    'status' => Ticket::STATUS_PENDING,
+                    'proof_hash' => $proofHash,
+                    'ticket_reference' => Ticket::normaliseReference($validated['ticket_reference'] ?? null),
+                ])->save();
             });
 
             return redirect()->route('seller.dashboard')->with('success', 'Your ticket has been listed successfully and is pending review.');
@@ -128,9 +148,18 @@ class TicketController extends Controller
 
         $qrCode = QrCode::size(250)->generate($ticket->validation_code);
 
+        // The paid order behind this ticket (none for tickets sold before M-Pesa checkout).
+        $order = $ticket->orders()
+            ->where('user_id', Auth::id())
+            ->whereNotNull('paid_at')
+            ->with('dispute')
+            ->latest('id')
+            ->first();
+
         return view('tickets.purchased_show', [
             'ticket' => $ticket,
             'qrCode' => $qrCode,
+            'order' => $order,
         ]);
     }
 

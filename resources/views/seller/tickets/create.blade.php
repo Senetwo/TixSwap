@@ -46,9 +46,16 @@
                     <input type="text" name="seat_details" id="seat_details" value="{{ old('seat_details') }}" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
                 </div>
             </div>
-            <div>
-                <label for="original_vendor" class="block text-sm font-medium text-gray-700">Original Ticket Vendor</label>
-                <input type="text" name="original_vendor" id="original_vendor" value="{{ old('original_vendor') }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label for="original_vendor" class="block text-sm font-medium text-gray-700">Original Ticket Vendor</label>
+                    <input type="text" name="original_vendor" id="original_vendor" value="{{ old('original_vendor') }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+                </div>
+                <div>
+                    <label for="ticket_reference" class="block text-sm font-medium text-gray-700">Ticket or order number <span class="font-normal text-gray-500">(recommended)</span></label>
+                    <input type="text" name="ticket_reference" id="ticket_reference" value="{{ old('ticket_reference') }}" maxlength="100" placeholder="e.g. TKT-48213-AB" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+                    <p class="mt-1 text-xs text-gray-500">From your receipt or ticket. Listings with a number are approved faster.</p>
+                </div>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
@@ -57,7 +64,10 @@
                 </div>
                 <div>
                     <label for="purchase_proof" class="block text-sm font-medium text-gray-700">Proof of Purchase</label>
-                    <input type="file" name="purchase_proof" id="purchase_proof" required class="mt-1 block w-full">
+                    <input type="file" name="purchase_proof" id="purchase_proof" required accept=".jpg,.jpeg,.png,.pdf" class="mt-1 block w-full">
+                    @error('purchase_proof')
+                        <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                    @enderror
                 </div>
             </div>
             <div class="pt-6">

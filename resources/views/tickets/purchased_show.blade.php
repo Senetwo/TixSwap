@@ -35,6 +35,9 @@
                     Back to My Tickets
                 </a>
             </div>
+            <div class="mt-6">
+                @include('disputes._status', ['order' => $order])
+            </div>
         </div>
     </div>
 

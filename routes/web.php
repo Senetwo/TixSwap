@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\DisputeController as AdminDisputeController;
 use App\Http\Controllers\Admin\ListingManagementController;
 use App\Http\Controllers\Admin\PayoutController;
 use App\Http\Controllers\Admin\TicketVerificationController;
@@ -7,6 +8,7 @@ use App\Http\Controllers\Admin\UserManagementController;
 use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\DisputeController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\MpesaCallbackController;
 use App\Http\Controllers\PageController;
@@ -52,6 +54,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('orders.status');
     Route::get('/payment/success/{ticket}', [PaymentController::class, 'paymentSuccess'])->name('payment.success');
 
+    // Buyer reports a problem (freezes escrow)
+    Route::get('/orders/{order}/dispute', [DisputeController::class, 'create'])->name('disputes.create');
+    Route::post('/orders/{order}/dispute', [DisputeController::class, 'store'])
+        ->middleware('throttle:5,1')
+        ->name('disputes.store');
+
     // A purchased ticket with its QR code (buyer only)
     Route::get('/my-tickets/{ticket}', [TicketController::class, 'showPurchasedTicket'])->name('tickets.purchased.show');
 
@@ -82,6 +90,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
         // Ticket Verification
         Route::get('/tickets/verify', [TicketVerificationController::class, 'index'])->name('tickets.index');
         Route::patch('/tickets/{ticket}/approve', [TicketVerificationController::class, 'approve'])->name('tickets.approve');
+        // Disputes
+        Route::get('/disputes', [AdminDisputeController::class, 'index'])->name('disputes.index');
+        Route::patch('/disputes/{dispute}', [AdminDisputeController::class, 'resolve'])->name('disputes.resolve');
+        Route::get('/disputes/{dispute}/evidence', [AdminDisputeController::class, 'evidence'])->name('disputes.evidence');
+
         // Payouts & refunds
         Route::get('/payouts', [PayoutController::class, 'index'])->name('payouts.index');
         Route::patch('/payouts/{payout}/paid', [PayoutController::class, 'markPaid'])->name('payouts.paid');

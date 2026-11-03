@@ -27,7 +27,8 @@ class SellerDashboardController extends Controller
             ->whereHas('ticket', fn ($q) => $q->where('user_id', $seller->id));
 
         $earnings = [
-            'in_escrow' => (clone $soldOrders)->where('escrow_status', \App\Models\Order::ESCROW_HELD)->sum('seller_amount'),
+            'in_escrow' => (clone $soldOrders)->whereIn('escrow_status', [\App\Models\Order::ESCROW_HELD, \App\Models\Order::ESCROW_DISPUTED])->sum('seller_amount'),
+            'disputed' => (clone $soldOrders)->where('escrow_status', \App\Models\Order::ESCROW_DISPUTED)->sum('seller_amount'),
             'awaiting_payout' => $seller->payouts()->where('status', \App\Models\Payout::STATUS_PENDING)->sum('amount'),
             'paid_out' => $seller->payouts()->where('status', \App\Models\Payout::STATUS_PAID)->sum('amount'),
         ];
@@ -43,6 +44,7 @@ class SellerDashboardController extends Controller
             'stats' => $stats,
             'earnings' => $earnings,
             'needsPayoutPhone' => ! $seller->payout_phone,
+            'disputedTicketIds' => (clone $soldOrders)->where('escrow_status', \App\Models\Order::ESCROW_DISPUTED)->pluck('ticket_id')->all(),
             'tickets' => $tickets
         ]);
     }

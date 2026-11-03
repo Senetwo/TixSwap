@@ -30,6 +30,7 @@ class StoreTicketRequest extends FormRequest
             'price' => 'required|numeric|min:1|max:1000000',
             'seat_details' => 'required|string|max:255',
             'original_vendor' => 'nullable|string|max:255',
+            'ticket_reference' => 'nullable|string|max:100',
             'event_image' => 'required|image|mimes:jpg,jpeg,png|max:2048',
             'purchase_proof' => 'required|file|mimes:jpg,jpeg,png,pdf|max:2048',
         ];
