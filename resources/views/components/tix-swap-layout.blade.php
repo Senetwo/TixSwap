@@ -1,4 +1,4 @@
-@props(['title' => null, 'navigation' => null, 'width' => 'max-w-7xl'])
+@props(['title' => null, 'description' => null, 'image' => null, 'navigation' => null, 'width' => 'max-w-7xl'])
 @php
     $user = auth()->user();
     // Role-aware primary navigation: [label, route name, active pattern]
@@ -9,7 +9,7 @@
             ['My listings', 'seller.dashboard', ['seller.dashboard', 'seller.tickets.edit']],
         ],
         default => [
-            ['Browse', 'dashboard', ['dashboard', 'tickets.show']],
+            ['Browse', 'home', ['home', 'events.show', 'tickets.show']],
             ['My tickets', 'cart.index', ['cart.index', 'tickets.purchased.show', 'disputes.*']],
         ],
     };
@@ -17,14 +17,14 @@
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="h-full">
 <head>
-    <x-partials-head :title="$title" />
+    <x-partials-head :title="$title" :description="$description" :image="$image" />
 </head>
 <body class="flex min-h-full flex-col">
     <a href="#main" class="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-white focus:px-4 focus:py-2 focus:shadow-lift">Skip to content</a>
 
     <header x-data="{ menu: false }" class="sticky top-0 z-40 border-b border-gray-200/80 bg-white/90 backdrop-blur supports-[backdrop-filter]:bg-white/75">
         <div class="mx-auto flex h-16 max-w-7xl items-center gap-6 px-4 sm:px-6 lg:px-8">
-            <a href="{{ $user ? route('dashboard') : route('login') }}" class="flex items-center gap-2 text-lg font-bold tracking-tight text-gray-900">
+            <a href="{{ $user && ! $user->isBuyer() ? route('dashboard') : route('home') }}" class="flex items-center gap-2 text-lg font-bold tracking-tight text-gray-900">
                 <x-application-logo class="h-8 w-8 text-brand-600" />
                 TixSwap
             </a>

@@ -5,9 +5,9 @@
     $minutes = config('services.tixswap.reservation_minutes');
     $sellerName = $ticket->seller ? Str::of($ticket->seller->name)->explode(' ')->first() : 'a fan';
 @endphp
-<x-tixswap-layout :title="$event->name">
-    <a href="{{ route('dashboard') }}" class="mb-6 inline-flex items-center gap-1.5 text-sm font-medium text-gray-500 hover:text-gray-900">
-        <x-ui.icon name="arrow-left" class="h-4 w-4" /> All tickets
+<x-tixswap-layout :title="$event->name.' · '.$ticket->seat_details" :description="'KES '.number_format($price).' · '.$date->format('D j M, g:i A').' at '.$event->location.'. Verified resale ticket on TixSwap.'">
+    <a href="{{ route('events.show', [$event, $event->slug()]) }}" class="mb-6 inline-flex items-center gap-1.5 text-sm font-medium text-gray-500 hover:text-gray-900">
+        <x-ui.icon name="arrow-left" class="h-4 w-4" /> All tickets for {{ $event->name }}
     </a>
 
     <div class="grid grid-cols-1 gap-8 lg:grid-cols-5 lg:gap-12">
@@ -50,7 +50,12 @@
                     <x-ui.alert tone="warning" class="mt-6" title="Someone is paying for this ticket">
                         If they don't finish, it'll be back on sale within {{ $minutes }} minutes.
                     </x-ui.alert>
-                    <x-ui.button variant="secondary" :href="route('dashboard')" class="mt-4 w-full">Browse other tickets</x-ui.button>
+                    <x-ui.button variant="secondary" :href="route('home')" class="mt-4 w-full">Browse other tickets</x-ui.button>
+                @elseif (auth()->guest())
+                    <div id="checkout" class="mt-6 space-y-3">
+                        <x-ui.button size="lg" variant="mpesa" :href="route('tickets.buy', $ticket)" class="w-full">Log in to buy</x-ui.button>
+                        <p class="text-center text-sm text-gray-500">New to TixSwap? <a href="{{ route('register') }}" class="font-semibold text-brand-600 hover:text-brand-700">Create a free account</a></p>
+                    </div>
                 @else
                     <form id="payment-form" action="{{ route('pay') }}" method="POST" class="mt-6 space-y-4">
                         @csrf

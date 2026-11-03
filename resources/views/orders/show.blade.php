@@ -48,7 +48,7 @@
             <x-ui.button id="retry-link" variant="mpesa" size="lg" :href="route('tickets.show', $order->ticket_id)" @class(['w-full', 'hidden' => $order->isPending()])>
                 Try again
             </x-ui.button>
-            <a href="{{ route('dashboard') }}" class="block text-sm font-medium text-gray-500 hover:text-gray-900">Back to all tickets</a>
+            <a href="{{ route('home') }}" class="block text-sm font-medium text-gray-500 hover:text-gray-900">Back to all tickets</a>
         </div>
     </div>
 

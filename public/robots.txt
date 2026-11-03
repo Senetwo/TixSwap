@@ -1,2 +1,8 @@
 User-agent: *
-Disallow:
+Disallow: /admin
+Disallow: /seller
+Disallow: /orders
+Disallow: /my-tickets
+Disallow: /profile
+
+Sitemap: /sitemap.xml

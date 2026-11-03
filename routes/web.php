@@ -9,6 +9,7 @@ use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DisputeController;
+use App\Http\Controllers\HomeController;
 use App\Http\Controllers\MpesaCallbackController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\PaymentController;
@@ -18,9 +19,12 @@ use App\Http\Controllers\TicketController;
 use Illuminate\Support\Facades\Route;
 
 // Publicly accessible routes
-Route::get('/', function () {
-    return redirect()->route('login');
-});
+Route::get('/', [HomeController::class, 'index'])->name('home');
+Route::get('/events/{event}/{slug?}', [HomeController::class, 'event'])->whereNumber('event')->name('events.show');
+Route::get('/sitemap.xml', [HomeController::class, 'sitemap'])->name('sitemap');
+
+// Ticket pages are public so they can be shared; buying needs an account.
+Route::get('/tickets/{ticket}', [TicketController::class, 'show'])->whereNumber('ticket')->name('tickets.show');
 
 Route::get('/about', [PageController::class, 'about'])->name('about');
 Route::get('/support', [PageController::class, 'support'])->name('support');
@@ -39,8 +43,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // "My Tickets" (Purchased Tickets)
     Route::get('/my-tickets', [CartController::class, 'index'])->name('cart.index');
 
-    // Ticket purchase page (only approved, unsold tickets are shown)
-    Route::get('/tickets/{ticket}', [TicketController::class, 'show'])->name('tickets.show');
+    // "Log in to buy" lands here; after login the user is sent back to the ticket.
+    Route::get('/tickets/{ticket}/buy', fn (\App\Models\Ticket $ticket) => redirect()->to(route('tickets.show', $ticket).'#checkout'))->name('tickets.buy');
 
     // M-Pesa checkout (rate limited to slow down abuse)
     Route::post('/pay', [PaymentController::class, 'checkout'])
@@ -67,6 +71,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Seller-specific routes
     Route::middleware('isSeller')->prefix('seller')->name('seller.')->group(function () {
         Route::get('/dashboard', [SellerDashboardController::class, 'index'])->name('dashboard');
+        Route::get('/events/search', [TicketController::class, 'searchEvents'])->name('events.search');
         Route::resource('tickets', TicketController::class)->except(['index', 'show']);
     });
 

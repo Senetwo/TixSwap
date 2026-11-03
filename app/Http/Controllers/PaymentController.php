@@ -36,7 +36,7 @@ class PaymentController extends Controller
         try {
             $order = $this->checkout->start($request->user(), (int) $validated['ticket_id'], $validated['phone_number']);
         } catch (TicketUnavailableException) {
-            return redirect()->route('dashboard')->with('error', 'Sorry, this ticket is no longer available.');
+            return redirect()->route('home')->with('error', 'Sorry, this ticket is no longer available.');
         } catch (MpesaException) {
             return back()->withInput()->with('error', 'We could not reach M-Pesa. Please try again in a moment.');
         }

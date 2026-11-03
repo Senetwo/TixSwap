@@ -163,7 +163,7 @@ class MpesaCheckoutTest extends TestCase
 
         $this->actingAs($other)->get(route('tickets.show', $ticket))->assertOk()->assertSee('Someone is paying for this ticket');
         $this->actingAs($other)->post(route('pay'), ['ticket_id' => $ticket->id, 'phone_number' => '0722000000'])
-            ->assertRedirect(route('dashboard'));
+            ->assertRedirect(route('home'));
 
         $this->assertSame(1, Order::count());
     }

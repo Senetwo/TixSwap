@@ -106,7 +106,7 @@ class MarketplaceSecurityTest extends TestCase
 
         $this->actingAs($buyer)
             ->post(route('pay'), ['ticket_id' => $ticket->id, 'phone_number' => '0712345678'])
-            ->assertRedirect(route('dashboard'));
+            ->assertRedirect(route('home'));
 
         $this->assertNull($ticket->fresh()->buyer_id);
     }
@@ -120,7 +120,7 @@ class MarketplaceSecurityTest extends TestCase
 
         $this->actingAs($secondBuyer)
             ->post(route('pay'), ['ticket_id' => $ticket->id, 'phone_number' => '0712345678'])
-            ->assertRedirect(route('dashboard'));
+            ->assertRedirect(route('home'));
 
         $ticket->refresh();
         $this->assertSame($firstBuyer->id, $ticket->buyer_id);
@@ -133,7 +133,7 @@ class MarketplaceSecurityTest extends TestCase
 
         $this->actingAs($ticket->seller)
             ->post(route('pay'), ['ticket_id' => $ticket->id, 'phone_number' => '0712345678'])
-            ->assertRedirect(route('dashboard'));
+            ->assertRedirect(route('home'));
 
         $this->assertNull($ticket->fresh()->buyer_id);
     }

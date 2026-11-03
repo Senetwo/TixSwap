@@ -10,7 +10,7 @@
                 <x-ui.button size="lg" :href="route('register')">Create a free account</x-ui.button>
                 <x-ui.button size="lg" variant="secondary" :href="route('login')">Log in</x-ui.button>
             @else
-                <x-ui.button size="lg" :href="route('dashboard')">Browse tickets</x-ui.button>
+                <x-ui.button size="lg" :href="route('home')">Browse tickets</x-ui.button>
             @endguest
         </div>
     </section>

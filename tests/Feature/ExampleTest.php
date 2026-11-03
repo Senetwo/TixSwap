@@ -2,18 +2,19 @@
 
 namespace Tests\Feature;
 
-// use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class ExampleTest extends TestCase
 {
-    /**
-     * A basic test example.
-     */
+    use RefreshDatabase;
+
     public function test_the_application_returns_a_successful_response(): void
     {
-        // The home page currently sends visitors to the login screen.
-        $this->get('/')->assertRedirect(route('login'));
+        $this->withoutVite();
+
+        // The marketplace homepage is public.
+        $this->get('/')->assertOk();
         $this->get(route('login'))->assertOk();
     }
 }

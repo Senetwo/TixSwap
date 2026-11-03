@@ -50,17 +50,33 @@ class TicketController extends Controller
         }
 
         try {
-            $eventImagePath = $request->file('event_image')->store('event_images', 'public');
+            // Reuse the event if it's already on TixSwap (picked from the
+            // suggestions, or same name on the same day), so all its
+            // tickets appear together on one event page.
+            $existingEvent = isset($validated['event_id'])
+                ? Event::find($validated['event_id'])
+                : Event::findMatching($validated['event_name'], $validated['date']);
+
+            $eventImagePath = $request->hasFile('event_image') && ! ($existingEvent?->image_url && Storage::disk('public')->exists($existingEvent->image_url))
+                ? $request->file('event_image')->store('event_images', 'public')
+                : null;
             $purchaseProofPath = $request->file('purchase_proof')->store('purchase_proofs', self::PROOF_DISK);
 
-            DB::transaction(function () use ($validated, $eventImagePath, $purchaseProofPath, $proofHash) {
-                $event = Event::create([
-                    'name' => $validated['event_name'],
-                    'location' => $validated['location'],
-                    'date' => $validated['date'],
-                    'image_url' => $eventImagePath,
-                    'original_vendor' => $validated['original_vendor'] ?? 'N/A',
-                ]);
+            DB::transaction(function () use ($validated, $eventImagePath, $purchaseProofPath, $proofHash, $existingEvent) {
+                if ($existingEvent) {
+                    $event = $existingEvent;
+                    if ($eventImagePath) {
+                        $event->update(['image_url' => $eventImagePath]);
+                    }
+                } else {
+                    $event = Event::create([
+                        'name' => $validated['event_name'],
+                        'location' => $validated['location'],
+                        'date' => $validated['date'],
+                        'image_url' => $eventImagePath,
+                        'original_vendor' => $validated['original_vendor'] ?? 'N/A',
+                    ]);
+                }
 
                 $ticket = new Ticket([
                     'event_id' => $event->id,
@@ -90,6 +106,34 @@ class TicketController extends Controller
 
             return back()->with('error', 'There was a problem creating your ticket. Please try again.')->withInput();
         }
+    }
+
+    /**
+     * Upcoming events matching what the seller is typing, so they can
+     * attach their ticket to an event that's already listed.
+     */
+    public function searchEvents(\Illuminate\Http\Request $request): \Illuminate\Http\JsonResponse
+    {
+        $term = trim((string) $request->query('q'));
+
+        if (mb_strlen($term) < 2) {
+            return response()->json([]);
+        }
+
+        return response()->json(
+            Event::where('date', '>', now())
+                ->where('name', 'like', '%'.$term.'%')
+                ->orderBy('date')
+                ->limit(6)
+                ->get()
+                ->map(fn (Event $e) => [
+                    'id' => $e->id,
+                    'name' => $e->name,
+                    'location' => $e->location,
+                    'date' => $e->date->format('Y-m-d\TH:i'),
+                    'label' => $e->date->format('D j M Y, g:i A').' · '.$e->location,
+                ])
+        );
     }
 
     public function edit(Ticket $ticket): View

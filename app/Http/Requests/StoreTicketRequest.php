@@ -31,7 +31,9 @@ class StoreTicketRequest extends FormRequest
             'seat_details' => 'required|string|max:255',
             'original_vendor' => 'nullable|string|max:255',
             'ticket_reference' => 'nullable|string|max:100',
-            'event_image' => 'required|image|mimes:jpg,jpeg,png|max:2048',
+            'event_id' => 'nullable|integer|exists:events,id',
+            // Not needed when joining an event that's already listed.
+            'event_image' => 'required_without:event_id|nullable|image|mimes:jpg,jpeg,png|max:2048',
             'purchase_proof' => 'required|file|mimes:jpg,jpeg,png,pdf|max:2048',
         ];
     }

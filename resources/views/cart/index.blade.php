@@ -3,7 +3,7 @@
 
     @if ($tickets->isEmpty())
         <x-ui.empty-state icon="ticket" title="No tickets yet" description="When you buy a ticket it will appear here, ready to show at the gate.">
-            <x-ui.button :href="route('dashboard')">Browse tickets</x-ui.button>
+            <x-ui.button :href="route('home')">Browse tickets</x-ui.button>
         </x-ui.empty-state>
     @else
         @if ($upcoming->isNotEmpty())
