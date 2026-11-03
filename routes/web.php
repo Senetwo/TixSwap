@@ -23,6 +23,7 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/events/{event}/{slug?}', [HomeController::class, 'event'])->whereNumber('event')->name('events.show');
 Route::get('/sitemap.xml', [HomeController::class, 'sitemap'])->name('sitemap');
+Route::view('/offline', 'offline')->name('offline');
 
 // Ticket pages are public so they can be shared; buying needs an account.
 Route::get('/tickets/{ticket}', [TicketController::class, 'show'])->whereNumber('ticket')->name('tickets.show');

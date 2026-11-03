@@ -1,5 +1,16 @@
 <x-tixswap-layout title="My tickets" width="max-w-3xl">
-    <x-ui.page-header title="My tickets" description="Show the QR code at the entrance. Tickets work offline once saved as an image." />
+    <x-ui.page-header title="My tickets" description="Show the QR code at the entrance. Tickets you open are saved on this phone, so they work without signal." />
+
+    <div data-install-app hidden class="mb-6">
+        <div class="flex items-center gap-4 rounded-2xl bg-gray-900 p-4 text-white">
+            <img src="{{ asset('icon-192.png') }}" alt="" class="h-11 w-11 rounded-xl">
+            <div class="min-w-0 flex-1">
+                <p class="font-semibold">Install the TixSwap app</p>
+                <p class="text-sm text-gray-300">One tap to your tickets, even offline.</p>
+            </div>
+            <button type="button" class="rounded-lg bg-white px-3 py-2 text-sm font-semibold text-gray-900">Install</button>
+        </div>
+    </div>
 
     @if ($tickets->isEmpty())
         <x-ui.empty-state icon="ticket" title="No tickets yet" description="When you buy a ticket it will appear here, ready to show at the gate.">

@@ -20,6 +20,10 @@
 <meta name="twitter:card" content="summary_large_image">
 <title>{{ $fullTitle }}</title>
 <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}">
+<link rel="manifest" href="{{ asset('manifest.webmanifest') }}">
+<link rel="apple-touch-icon" href="{{ asset('apple-touch-icon.png') }}">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="TixSwap">
 <link rel="preconnect" href="https://fonts.bunny.net">
 <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700&display=swap" rel="stylesheet">
 @vite(['resources/css/app.css', 'resources/js/app.js'])
