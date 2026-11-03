@@ -9,12 +9,14 @@ use Symfony\Component\HttpFoundation\Response;
 class IsSeller
 {
     /**
-     * Handle an incoming request.
-     *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
+     * Only allow sellers (and admins) through.
      */
     public function handle(Request $request, Closure $next): Response
     {
+        $user = $request->user();
+
+        abort_unless($user && ($user->isSeller() || $user->isAdmin()), 403, 'Sellers only.');
+
         return $next($request);
     }
 }

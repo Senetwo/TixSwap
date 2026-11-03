@@ -10,13 +10,22 @@
     @endif
 
     <div class="mt-4 flex items-center justify-between">
-        <!-- The Instant Verification Button -->
-        <form method="POST" action="{{ route('verification.force_verify') }}">
-            @csrf
-            <x-primary-button>
-                {{ __('Verify This Email') }}
-            </x-primary-button>
-        </form>
+        @if (app()->isLocal())
+            <!-- Development only: skip email verification -->
+            <form method="POST" action="{{ route('verification.force_verify') }}">
+                @csrf
+                <x-primary-button>
+                    {{ __('Verify This Email (dev only)') }}
+                </x-primary-button>
+            </form>
+        @else
+            <form method="POST" action="{{ route('verification.send') }}">
+                @csrf
+                <x-primary-button>
+                    {{ __('Resend Verification Email') }}
+                </x-primary-button>
+            </form>
+        @endif
 
         <form method="POST" action="{{ route('logout') }}">
             @csrf

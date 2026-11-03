@@ -54,11 +54,14 @@
                             <p class="text-xs text-gray-400 mt-1">Listed on {{ $ticket->created_at->format('M d, Y') }}</p>
                             
                             <div class="mt-4 pt-4 border-t">
-                                @if($ticket->status !== 'sold')
-                                    <a href="{{-- route('seller.tickets.edit', $ticket) --}}" class="w-full block text-center bg-gray-200 text-gray-800 py-2 rounded-lg font-semibold hover:bg-gray-300">Edit Listing</a>
-                                @else
-                                    <div class="text-center text-gray-500 font-semibold">This ticket has been sold.</div>
+                                @if($ticket->status === 'rejected' && $ticket->admin_notes)
+                                    <p class="mb-3 text-sm text-red-700"><strong>Rejected:</strong> {{ $ticket->admin_notes }}</p>
                                 @endif
+                                @can('update', $ticket)
+                                    <a href="{{ route('seller.tickets.edit', $ticket) }}" class="w-full block text-center bg-gray-200 text-gray-800 py-2 rounded-lg font-semibold hover:bg-gray-300">Edit Listing</a>
+                                @elseif($ticket->status === 'sold')
+                                    <div class="text-center text-gray-500 font-semibold">This ticket has been sold.</div>
+                                @endcan
                             </div>
                         </div>
                     </div>

@@ -28,7 +28,7 @@
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">KES {{ number_format($ticket->price) }}</td>
                         <td class="px-6 py-4 whitespace-nowrap">
-                            <a href="{{ asset('storage/' . $ticket->proof_of_purchase_path) }}" target="_blank" class="text-blue-600 hover:text-blue-900 hover:underline">View</a>
+                            <a href="{{ route('tickets.proof', $ticket) }}" target="_blank" class="text-blue-600 hover:text-blue-900 hover:underline">View</a>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
                             @if($ticket->status === 'pending')

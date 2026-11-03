@@ -3,57 +3,74 @@
 namespace App\Http\Controllers;
 
 use App\Models\Ticket;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
-use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use Illuminate\View\View;
+use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 class PaymentController extends Controller
 {
     /**
-     * Instantly processes a simulated payment.
+     * Process a (still simulated) payment for a ticket.
+     *
+     * The ticket row is locked for the duration of the transaction so two
+     * buyers paying at the same moment cannot both end up owning it.
      */
-    public function processSimulatedPayment(Request $request)
+    public function processSimulatedPayment(Request $request): RedirectResponse
     {
-        // Corrected validation rule to min:9 for the phone number
-        $request->validate([
-            'ticket_id' => 'required|exists:tickets,id',
-            'phone_number' => 'required|string|min:9',
+        $validated = $request->validate([
+            'ticket_id' => 'required|integer|exists:tickets,id',
+            'phone_number' => ['required', 'string', 'regex:/^(\+?254|0)?[17]\d{8}$/'],
+        ], [
+            'phone_number.regex' => 'Enter a valid Kenyan phone number, e.g. 0712345678.',
         ]);
 
-        $ticket = Ticket::findOrFail($request->ticket_id);
+        $buyer = $request->user();
 
-        // Restored the try...catch block for robust error handling
-        DB::beginTransaction();
         try {
-            $ticket->update([
-                'status' => 'sold',
-                'buyer_id' => Auth::id(),
-                'validation_code' => Str::uuid(),
-            ]);
+            $ticket = DB::transaction(function () use ($validated, $buyer) {
+                $ticket = Ticket::whereKey($validated['ticket_id'])->lockForUpdate()->firstOrFail();
 
-            DB::commit();
+                if ($buyer->cannot('purchase', $ticket)) {
+                    return null;
+                }
 
-            return redirect()->route('payment.success', ['ticket' => $ticket->id]);
+                $ticket->forceFill([
+                    'status' => Ticket::STATUS_SOLD,
+                    'buyer_id' => $buyer->id,
+                    'validation_code' => (string) Str::uuid(),
+                ])->save();
 
-        } catch (\Exception $e) {
-            DB::rollBack();
+                return $ticket;
+            });
+        } catch (\Throwable $e) {
+            Log::error('Payment failed', ['ticket_id' => $validated['ticket_id'], 'error' => $e->getMessage()]);
+
             return back()->with('error', 'An error occurred during payment. Please try again.');
         }
+
+        if ($ticket === null) {
+            return redirect()->route('dashboard')
+                ->with('error', 'Sorry, this ticket is no longer available.');
+        }
+
+        return redirect()->route('payment.success', ['ticket' => $ticket->id]);
     }
 
     /**
-     * Display the payment success page with ticket and QR code.
+     * Show the payment success page with the ticket and its QR code.
      */
     public function paymentSuccess(Ticket $ticket): View
     {
-        // TODO: Re-enable this security check before going live!
-        // abort_if($ticket->buyer_id !== Auth::id(), 403);
+        $this->authorize('viewPurchased', $ticket);
 
-        $qrCodeData = route('tickets.purchased.show', $ticket);
-        $qrCode = QrCode::size(250)->generate($qrCodeData);
+        // The QR code carries the ticket's unique validation code, which is
+        // what a gate scanner checks.
+        $qrCode = QrCode::size(250)->generate($ticket->validation_code);
 
         return view('payment.success', [
             'ticket' => $ticket,

@@ -26,8 +26,8 @@ class StoreTicketRequest extends FormRequest
         return [
             'event_name' => 'required|string|max:255',
             'location' => 'required|string|max:255',
-            'date' => 'required|date',
-            'price' => 'required|numeric|min:0',
+            'date' => 'required|date|after:now',
+            'price' => 'required|numeric|min:1|max:1000000',
             'seat_details' => 'required|string|max:255',
             'original_vendor' => 'nullable|string|max:255',
             'event_image' => 'required|image|mimes:jpg,jpeg,png|max:2048',

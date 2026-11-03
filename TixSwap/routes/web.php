@@ -25,10 +25,6 @@ Route::get('/support', [PageController::class, 'support'])->name('support');
 Route::get('/privacy', [PageController::class, 'privacy'])->name('privacy');
 Route::get('/terms', [PageController::class, 'terms'])->name('terms');
 
-// Route to view a single ticket for purchase.
-// The controller ensures it's an 'approved' ticket.
- Route::get('/tickets/{ticket}', [TicketController::class, 'show'])->name('tickets.show');
-
 // Routes that require authentication
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
@@ -41,19 +37,20 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // "My Tickets" (Purchased Tickets)
     Route::get('/my-tickets', [CartController::class, 'index'])->name('cart.index');
 
-    // The route to show the ticket purchase page
-    Route::get('/tickets/{ticket}', [App\Http\Controllers\TicketController::class, 'show'])->name('tickets.show');
+    // Ticket purchase page (only approved, unsold tickets are shown)
+    Route::get('/tickets/{ticket}', [TicketController::class, 'show'])->name('tickets.show');
 
-    // The routes for handling the payment
-    Route::post('/pay', [App\Http\Controllers\PaymentController::class, 'processSimulatedPayment'])->name('pay');
-    Route::get('/payment/success/{ticket}', [App\Http\Controllers\PaymentController::class, 'paymentSuccess'])->name('payment.success');
+    // Payment (rate limited to slow down abuse)
+    Route::post('/pay', [PaymentController::class, 'processSimulatedPayment'])
+        ->middleware('throttle:10,1')
+        ->name('pay');
+    Route::get('/payment/success/{ticket}', [PaymentController::class, 'paymentSuccess'])->name('payment.success');
 
-    // The route to view the final purchased ticket
-    Route::get('/my-tickets/{ticket}', [App\Http\Controllers\TicketController::class, 'showPurchasedTicket'])->name('tickets.purchased.show');
+    // A purchased ticket with its QR code (buyer only)
+    Route::get('/my-tickets/{ticket}', [TicketController::class, 'showPurchasedTicket'])->name('tickets.purchased.show');
 
-    // This route allows a user to view a ticket they have purchased.
-    // It uses the ticket's ID or UUID for lookup.
-    // Route::get('/my-tickets/{ticket}', [App\Http\Controllers\TicketController::class, 'showPurchasedTicket'])->name('tickets.purchased.show');
+    // Private proof-of-purchase file (seller who uploaded it, or an admin)
+    Route::get('/tickets/{ticket}/proof', [TicketController::class, 'showProof'])->name('tickets.proof');
 
     // Seller-specific routes
     Route::middleware('isSeller')->prefix('seller')->name('seller.')->group(function () {
@@ -71,15 +68,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         // Listing Management
         Route::get('/tickets/pending', [TicketVerificationController::class, 'index'])->name('tickets.pending');
-       Route::get('/listings', [ListingManagementController::class, 'index'])->name('listings.index');
+        Route::get('/listings', [ListingManagementController::class, 'index'])->name('listings.index');
         Route::get('/listings/{ticket}/edit', [ListingManagementController::class, 'edit'])->name('listings.edit');
         Route::put('/listings/{ticket}', [ListingManagementController::class, 'update'])->name('listings.update');
         Route::delete('/listings/{ticket}', [ListingManagementController::class, 'destroy'])->name('listings.destroy');
 
         // Ticket Verification
         Route::get('/tickets/verify', [TicketVerificationController::class, 'index'])->name('tickets.index');
-         Route::patch('/tickets/{ticket}/approve', [TicketVerificationController::class, 'approve'])->name('tickets.approve');
-    Route::patch('/tickets/{ticket}/reject', [TicketVerificationController::class, 'reject'])->name('tickets.reject');
+        Route::patch('/tickets/{ticket}/approve', [TicketVerificationController::class, 'approve'])->name('tickets.approve');
+        Route::patch('/tickets/{ticket}/reject', [TicketVerificationController::class, 'reject'])->name('tickets.reject');
     });
 });
 

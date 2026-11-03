@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\TicketController;
 use App\Models\Ticket;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -29,7 +30,7 @@ class ListingManagementController extends Controller
     public function update(Request $request, Ticket $ticket)
     {
         $validated = $request->validate([
-            'price' => 'required|numeric|min:0',
+            'price' => 'required|numeric|min:1|max:1000000',
             'seat_details' => 'required|string|max:255',
         ]);
 
@@ -39,7 +40,7 @@ class ListingManagementController extends Controller
 
     public function destroy(Ticket $ticket)
     {
-        $ticket->delete();
+        TicketController::deleteWithFiles($ticket);
         return back()->with('success', 'Ticket listing has been deleted.');
     }
 }

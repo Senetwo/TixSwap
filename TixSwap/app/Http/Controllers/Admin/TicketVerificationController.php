@@ -16,7 +16,7 @@ class TicketVerificationController extends Controller
      */
     public function index(): View
     {
-        $pendingTickets = Ticket::where('status', 'pending')
+        $pendingTickets = Ticket::where('status', Ticket::STATUS_PENDING)
                                 ->with(['seller', 'event'])
                                 ->latest()
                                 ->get();
@@ -29,14 +29,13 @@ class TicketVerificationController extends Controller
      */
     public function approve(Ticket $ticket): RedirectResponse
     {
-        $ticket->update(['status' => 'approved']);
+        abort_unless($ticket->status === Ticket::STATUS_PENDING, 422, 'Only pending tickets can be approved.');
+
+        $ticket->forceFill(['status' => Ticket::STATUS_APPROVED, 'admin_notes' => null])->save();
         // You could add a notification to the seller here
         return redirect()->route('admin.tickets.pending')->with('success', 'Ticket has been approved.');
     }
 
-    /**
-     * Reject the specified ticket.
-     */
     /**
      * Reject the specified ticket and record a reason.
      */
@@ -46,10 +45,12 @@ class TicketVerificationController extends Controller
             'rejection_reason' => 'required|string|max:1000',
         ]);
 
-        $ticket->update([
-            'status' => 'rejected',
+        abort_unless($ticket->status === Ticket::STATUS_PENDING, 422, 'Only pending tickets can be rejected.');
+
+        $ticket->forceFill([
+            'status' => Ticket::STATUS_REJECTED,
             'admin_notes' => $request->rejection_reason,
-        ]);
+        ])->save();
 
         return redirect()->route('admin.tickets.pending')->with('success', 'Ticket has been rejected.');
     }

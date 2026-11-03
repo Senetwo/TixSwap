@@ -35,7 +35,7 @@
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">KES {{ number_format($ticket->price) }}</td>
                         <td class="px-6 py-4 whitespace-nowrap">
-                            <a href="{{ \Illuminate\Support\Facades\Storage::url($ticket->purchase_proof) }}" target="_blank" class="text-blue-600 hover:text-blue-900 hover:underline">View Proof</a>
+                            <a href="{{ route('tickets.proof', $ticket) }}" target="_blank" class="text-blue-600 hover:text-blue-900 hover:underline">View Proof</a>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
                             <form action="{{ route('admin.tickets.approve', $ticket) }}" method="POST" class="inline">

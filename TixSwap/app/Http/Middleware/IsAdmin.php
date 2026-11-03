@@ -9,12 +9,12 @@ use Symfony\Component\HttpFoundation\Response;
 class IsAdmin
 {
     /**
-     * Handle an incoming request.
-     *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
+     * Only allow users with the 'admin' role through.
      */
     public function handle(Request $request, Closure $next): Response
     {
+        abort_unless($request->user()?->isAdmin(), 403, 'Admins only.');
+
         return $next($request);
     }
 }
