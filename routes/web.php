@@ -9,7 +9,6 @@ use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DisputeController;
-use App\Http\Controllers\HomeController;
 use App\Http\Controllers\MpesaCallbackController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\PaymentController;
@@ -19,7 +18,6 @@ use App\Http\Controllers\TicketController;
 use Illuminate\Support\Facades\Route;
 
 // Publicly accessible routes
-// Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/', function () {
     return redirect()->route('login');
 });

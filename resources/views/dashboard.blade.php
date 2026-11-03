@@ -1,44 +1,54 @@
-<x-tixswap-layout>
-    <x-slot name="title">Buyer Dashboard</x-slot>
-    <x-slot name="navigation">
-        <a href="{{ route('dashboard') }}" class="bg-red-700 text-white rounded-md px-3 py-2 text-sm font-medium" aria-current="page">Home</a>
-        <a href="{{ route('cart.index') }}" class="text-red-100 hover:bg-red-500 hover:bg-opacity-75 rounded-md px-3 py-2 text-sm font-medium">My Tickets</a>
-        <a href="{{ route('support') }}" class="text-red-100 hover:bg-red-500 hover:bg-opacity-75 rounded-md px-3 py-2 text-sm font-medium">Support</a>
-    </x-slot>
+<x-tixswap-layout title="Browse tickets">
+    {{-- Search-led hero --}}
+    <section class="relative mb-10 overflow-hidden rounded-3xl bg-gray-950 px-6 py-10 sm:px-10 sm:py-14">
+        <div class="absolute -right-20 -top-20 h-72 w-72 rounded-full bg-brand-600/50 blur-3xl" aria-hidden="true"></div>
+        <div class="absolute -bottom-24 left-1/3 h-72 w-72 rounded-full bg-orange-500/25 blur-3xl" aria-hidden="true"></div>
+        <div class="relative max-w-2xl">
+            <h1 class="text-3xl font-bold tracking-tight text-white sm:text-4xl">Find tickets to what's on</h1>
+            <p class="mt-2 text-gray-300">Verified tickets from real fans. Pay with M-Pesa; your money is protected until after the event.</p>
 
-    <!-- Search Bar -->
-    <div class="mb-8">
-        <form action="{{ route('dashboard') }}" method="GET" class="flex gap-2">
-            <input type="text" name="search" placeholder="Search for events by name or location..." class="w-full p-3 border border-gray-300 rounded-lg" value="{{ request('search') }}">
-            <button type="submit" class="bg-red-600 text-white font-semibold px-6 py-3 rounded-lg hover:bg-red-700">Search</button>
-        </form>
-    </div>
-
-    <!-- All Tickets Section -->
-    <div>
-        <div class="flex justify-between items-center mb-4">
-            <h2 class="text-2xl font-bold text-gray-800">All Available Tickets</h2>
-        </div>
-
-        @if ($tickets->isEmpty())
-            <div class="text-center py-16 bg-gray-50 rounded-lg">
-                <h3 class="text-xl font-bold">No tickets found</h3>
-                <p class="text-gray-500 mt-2">Try adjusting your search criteria.</p>
-            </div>
-        @else
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                @foreach ($tickets as $ticket)
-                <div class="bg-white rounded-xl shadow-md overflow-hidden">
-                    <img class="h-48 w-full object-cover" src="{{ asset('storage/' . $ticket->event->image_url) }}" alt="{{ $ticket->event->name }}">
-                    <div class="p-6">
-                        <h3 class="text-xl font-bold">{{ $ticket->event->name }}</h3>
-                        <p class="text-sm text-gray-500">{{ \Carbon\Carbon::parse($ticket->event->date)->format('D, M j, Y') }} - {{ $ticket->event->location }}</p>
-                        <p class="mt-2 text-lg font-semibold text-gray-800">KES {{ number_format($ticket->price) }}</p>
-                        <a href="{{ route('tickets.show', $ticket) }}" class="mt-4 w-full block text-center bg-red-600 text-white py-2 rounded-lg font-semibold hover:bg-red-700">Buy Now</a>
-                    </div>
+            <form action="{{ route('dashboard') }}" method="GET" role="search" class="mt-6 flex flex-col gap-2 sm:flex-row">
+                <label for="search" class="sr-only">Search events</label>
+                <div class="relative flex-1">
+                    <x-ui.icon name="search" class="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
+                    <input id="search" type="search" name="search" value="{{ request('search') }}"
+                           placeholder="Search by event or city"
+                           class="block w-full rounded-xl border-0 py-3.5 pl-12 pr-4 text-gray-900 shadow-sm ring-1 ring-white/10 placeholder:text-gray-400 focus:ring-2 focus:ring-white/60">
                 </div>
-                @endforeach
-            </div>
-        @endif
+                <x-ui.button size="lg" class="rounded-xl">Search</x-ui.button>
+            </form>
+        </div>
+    </section>
+
+    <div class="mb-5 flex flex-wrap items-baseline justify-between gap-2">
+        <h2 class="text-xl font-semibold text-gray-900">
+            @if (request()->filled('search'))
+                Results for “{{ request('search') }}”
+            @else
+                Available tickets
+            @endif
+        </h2>
+        <p class="text-sm text-gray-500">
+            {{ $tickets->count() }} {{ Str::plural('ticket', $tickets->count()) }}
+            @if (request()->filled('search'))
+                · <a href="{{ route('dashboard') }}" class="font-medium text-brand-600 hover:text-brand-700">Clear search</a>
+            @endif
+        </p>
     </div>
+
+    @if ($tickets->isEmpty())
+        <x-ui.empty-state icon="ticket"
+            :title="request()->filled('search') ? 'No tickets match your search' : 'No tickets on sale right now'"
+            :description="request()->filled('search') ? 'Try a different event name or city.' : 'New tickets are listed every day. Check back soon.'">
+            @if (request()->filled('search'))
+                <x-ui.button variant="secondary" :href="route('dashboard')">See all tickets</x-ui.button>
+            @endif
+        </x-ui.empty-state>
+    @else
+        <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            @foreach ($tickets as $ticket)
+                <x-ticket-card :ticket="$ticket" />
+            @endforeach
+        </div>
+    @endif
 </x-tixswap-layout>

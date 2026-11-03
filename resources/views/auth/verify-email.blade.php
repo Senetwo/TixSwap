@@ -1,37 +1,26 @@
-<x-guest-layout>
-    <div class="mb-4 text-sm text-gray-600">
-        {{ __('Thanks for signing up! Please verify your email address to continue.') }}
-    </div>
+<x-guest-layout title="Verify your email">
+    <span class="mb-6 flex h-12 w-12 items-center justify-center rounded-full bg-brand-50 text-brand-600"><x-ui.icon name="inbox" class="h-6 w-6" /></span>
+    @include('auth._heading', ['heading' => 'Check your inbox', 'sub' => 'We sent a verification link to <strong class="text-gray-900">'.e(auth()->user()->email).'</strong>. Click it to finish setting up your account.'])
 
     @if (session('status') == 'verification-link-sent')
-        <div class="mb-4 font-medium text-sm text-green-600">
-            {{ __('A new verification link has been sent to the email address you provided during registration.') }}
-        </div>
+        <x-ui.alert tone="success" class="mb-6">A new verification link has been sent.</x-ui.alert>
     @endif
 
-    <div class="mt-4 flex items-center justify-between">
+    <div class="space-y-3">
         @if (app()->isLocal())
-            <!-- Development only: skip email verification -->
             <form method="POST" action="{{ route('verification.force_verify') }}">
                 @csrf
-                <x-primary-button>
-                    {{ __('Verify This Email (dev only)') }}
-                </x-primary-button>
+                <x-ui.button size="lg" class="w-full">Verify this email (dev only)</x-ui.button>
             </form>
         @else
             <form method="POST" action="{{ route('verification.send') }}">
                 @csrf
-                <x-primary-button>
-                    {{ __('Resend Verification Email') }}
-                </x-primary-button>
+                <x-ui.button size="lg" class="w-full">Resend verification email</x-ui.button>
             </form>
         @endif
-
         <form method="POST" action="{{ route('logout') }}">
             @csrf
-            <button type="submit" class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                {{ __('Log Out') }}
-            </button>
+            <x-ui.button variant="ghost" class="w-full">Log out</x-ui.button>
         </form>
     </div>
 </x-guest-layout>

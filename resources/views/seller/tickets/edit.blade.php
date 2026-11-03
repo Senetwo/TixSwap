@@ -1,72 +1,47 @@
-<x-tixswap-layout>
-    <x-slot name="title">Edit Ticket</x-slot>
-    <x-slot name="navigation">
-        <a href="{{ route('seller.dashboard') }}" class="text-red-100 hover:bg-red-500 hover:bg-opacity-75 rounded-md px-3 py-2 text-sm font-medium">My Listings</a>
-        <a href="{{ route('seller.tickets.create') }}" class="text-red-100 hover:bg-red-500 hover:bg-opacity-75 rounded-md px-3 py-2 text-sm font-medium">Sell a Ticket</a>
-    </x-slot>
+@php($fee = (float) config('services.tixswap.commission_percent'))
+<x-tixswap-layout title="Edit listing" width="max-w-3xl">
+    <x-ui.page-header title="Edit listing" :back="route('seller.dashboard')" back-label="My listings" />
 
-    <div class="bg-white shadow-md rounded-lg p-8 max-w-4xl mx-auto">
-        <!-- Main Update Form -->
-        <form action="{{ route('seller.tickets.update', $ticket) }}" method="POST" class="space-y-6">
+    <div class="mb-6 flex items-center gap-4 rounded-2xl bg-white p-4 shadow-card ring-1 ring-gray-200/70">
+        <x-event-image :event="$ticket->event" class="h-16 w-16" rounded="rounded-xl" />
+        <div class="min-w-0 flex-1">
+            <p class="truncate font-semibold text-gray-900">{{ $ticket->event->name }}</p>
+            <p class="truncate text-sm text-gray-500">{{ \Illuminate\Support\Carbon::parse($ticket->event->date)->format('D, M j, Y · g:i A') }} · {{ $ticket->event->location }}</p>
+        </div>
+        <x-ui.status :status="$ticket->status" />
+    </div>
+
+    @if ($ticket->status === 'approved')
+        <x-ui.alert tone="info" class="mb-6">Saving changes takes your listing offline until our team has checked it again.</x-ui.alert>
+    @endif
+
+    <x-ui.card>
+        <form action="{{ route('seller.tickets.update', $ticket) }}" method="POST" class="space-y-5"
+              x-data="{ price: @js(old('price', (int) $ticket->price)), fee: {{ $fee }} }">
             @csrf
             @method('PATCH')
-
-            <h2 class="text-2xl font-bold mb-6">Edit Your Listing for: {{ $ticket->event->name }}</h2>
-
-            <!-- Event Details (Read-only) -->
+            <x-ui.field label="Seat or ticket type" name="seat_details" :value="$ticket->seat_details" required />
             <div>
-                <h3 class="text-lg font-medium text-gray-900 border-b pb-2 mb-4">Event Details</h3>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <p><strong class="text-gray-600">Event:</strong> {{ $ticket->event->name }}</p>
-                    <p><strong class="text-gray-600">Location:</strong> {{ $ticket->event->location }}</p>
-                    <p><strong class="text-gray-600">Date:</strong> {{ \Carbon\Carbon::parse($ticket->event->date)->format('D, M j, Y g:i A') }}</p>
-                </div>
+                <x-ui.field label="Your price" name="price" type="number" prefix="KES" min="1" step="1" required inputmode="numeric" x-model="price" />
+                <p class="mt-1.5 text-sm text-gray-500" x-show="price > 0">
+                    You'll receive <strong class="money text-gray-900" x-text="'KES ' + Math.floor(Math.ceil(price) * (1 - fee / 100)).toLocaleString()"></strong> after the TixSwap fee.
+                </p>
             </div>
-
-            <!-- Editable Ticket Details -->
-            <div class="pt-6 border-t">
-                <h3 class="text-lg font-medium text-gray-900 mb-4">Your Ticket Details</h3>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <label for="seat_details" class="block text-sm font-medium text-gray-700">Seat Details (e.g., Section A, Row 5)</label>
-                        <input type="text" id="seat_details" name="seat_details" value="{{ old('seat_details', $ticket->seat_details) }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 @error('seat_details') border-red-500 @enderror">
-                        @error('seat_details')
-                            <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
-                        @enderror
-                    </div>
-                    <div>
-                        <label for="price" class="block text-sm font-medium text-gray-700">Your Selling Price (KES)</label>
-                        <input type="number" id="price" name="price" value="{{ old('price', $ticket->price) }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 @error('price') border-red-500 @enderror">
-                         @error('price')
-                            <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
-                        @enderror
-                    </div>
-                </div>
-                 <div class="mt-6">
-                    <label for="original_vendor" class="block text-sm font-medium text-gray-700">Original Vendor (e.g., Ticketmaster)</label>
-                    <input type="text" id="original_vendor" name="original_vendor" value="{{ old('original_vendor', $ticket->original_vendor) }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 @error('original_vendor') border-red-500 @enderror">
-                     @error('original_vendor')
-                        <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
-                    @enderror
-                </div>
-            </div>
-
-            <!-- Update Button (Inside the main form) -->
-            <div class="flex items-center justify-end pt-6 border-t">
-                <div class="flex gap-4">
-                     <a href="{{ route('seller.dashboard') }}" class="bg-gray-200 text-gray-800 font-bold py-2 px-6 rounded-lg hover:bg-gray-300">Cancel</a>
-                    <button type="submit" class="bg-red-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-red-700">Update Ticket</button>
-                </div>
+            <x-ui.field label="Where you bought it" name="original_vendor" :value="$ticket->original_vendor === 'N/A' ? '' : $ticket->original_vendor" optional />
+            <div class="flex flex-col-reverse gap-3 border-t border-gray-100 pt-5 sm:flex-row sm:justify-end">
+                <x-ui.button variant="secondary" :href="route('seller.dashboard')">Cancel</x-ui.button>
+                <x-ui.button>Save changes</x-ui.button>
             </div>
         </form>
+    </x-ui.card>
 
-        <!-- Delete Form (Separate from the update form) -->
-        <div class="mt-6 border-t pt-6 text-left">
-             <form action="{{ route('seller.tickets.destroy', $ticket) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this listing? This cannot be undone.');">
+    @can('delete', $ticket)
+        <x-ui.card class="mt-6 ring-red-200" title="Remove listing" description="Take this ticket off TixSwap. This can't be undone.">
+            <form action="{{ route('seller.tickets.destroy', $ticket) }}" method="POST" onsubmit="return confirm('Remove this listing? This cannot be undone.');">
                 @csrf
                 @method('DELETE')
-                <button type="submit" class="text-red-600 hover:text-red-800 font-medium underline">Delete This Listing</button>
+                <x-ui.button variant="danger" icon="trash">Remove listing</x-ui.button>
             </form>
-        </div>
-    </div>
+        </x-ui.card>
+    @endcan
 </x-tixswap-layout>

@@ -1,51 +1,43 @@
-<x-tixswap-layout>
-    <x-slot name="title">Report a problem</x-slot>
+<x-tixswap-layout title="Report a problem" width="max-w-2xl">
+    <x-ui.page-header title="Report a problem" :back="route('tickets.purchased.show', $order->ticket_id)" back-label="Back to ticket"
+        description="Tell us what went wrong. The seller's payment stays on hold while we look into it." />
 
-    <div class="bg-white rounded-lg shadow-md max-w-2xl mx-auto p-8">
-        <h1 class="text-2xl font-bold text-gray-900">Report a problem with your ticket</h1>
-        <p class="mt-2 text-gray-600">
-            {{ $order->ticket->event->name }} · Seat {{ $order->ticket->seat_details }} · KES {{ number_format($order->amount) }}
-        </p>
-        <p class="mt-4 rounded-lg bg-blue-50 border border-blue-200 p-4 text-sm text-blue-900">
-            Your payment is still held by TixSwap. Reporting a problem keeps it on hold until our team has reviewed it.
-            If the ticket was not valid, we refund you to your M-Pesa number.
-        </p>
+    <div class="mb-6 flex items-center gap-4 rounded-2xl bg-white p-4 shadow-card ring-1 ring-gray-200/70">
+        <x-event-image :event="$order->ticket->event" class="h-14 w-14" rounded="rounded-xl" />
+        <div class="min-w-0 flex-1">
+            <p class="truncate font-semibold text-gray-900">{{ $order->ticket->event->name }}</p>
+            <p class="truncate text-sm text-gray-500">{{ $order->ticket->seat_details }}</p>
+        </div>
+        <p class="money font-semibold text-gray-900">KES {{ number_format($order->amount) }}</p>
+    </div>
 
-        <form method="POST" action="{{ route('disputes.store', $order) }}" enctype="multipart/form-data" class="mt-8 space-y-6">
+    <x-ui.card>
+        <form method="POST" action="{{ route('disputes.store', $order) }}" enctype="multipart/form-data" class="space-y-8">
             @csrf
-
             <fieldset>
-                <legend class="text-sm font-medium text-gray-700">What went wrong?</legend>
-                <div class="mt-2 space-y-2">
+                <legend class="text-sm font-medium text-gray-800">What went wrong?</legend>
+                <div class="mt-3 grid gap-2">
                     @foreach ($reasons as $value => $label)
-                        <label class="flex items-start gap-3 rounded-md border border-gray-200 p-3 hover:bg-gray-50 cursor-pointer">
-                            <input type="radio" name="reason" value="{{ $value }}" @checked(old('reason') === $value) required class="mt-1 text-red-600 focus:ring-red-500">
-                            <span class="text-gray-800">{{ $label }}</span>
+                        <label class="flex cursor-pointer items-center gap-3 rounded-xl border border-gray-200 p-4 transition hover:bg-gray-50 has-[:checked]:border-gray-900 has-[:checked]:bg-gray-50 has-[:checked]:ring-1 has-[:checked]:ring-gray-900">
+                            <input type="radio" name="reason" value="{{ $value }}" @checked(old('reason') === $value) required class="h-4 w-4 border-gray-300 text-gray-900 focus:ring-gray-900">
+                            <span class="text-sm font-medium text-gray-900">{{ $label }}</span>
                         </label>
                     @endforeach
                 </div>
                 @error('reason') <p class="mt-2 text-sm text-red-600">{{ $message }}</p> @enderror
             </fieldset>
 
-            <div>
-                <label for="details" class="block text-sm font-medium text-gray-700">Tell us what happened</label>
-                <textarea id="details" name="details" rows="5" required minlength="20" maxlength="2000"
-                          class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500"
-                          placeholder="e.g. At the gate the scanner said the ticket had already been used at 7:15pm.">{{ old('details') }}</textarea>
-                @error('details') <p class="mt-2 text-sm text-red-600">{{ $message }}</p> @enderror
-            </div>
+            <x-ui.field label="What happened?" name="details" type="textarea" rows="5" required minlength="20" maxlength="2000"
+                        placeholder="e.g. At gate B the scanner said the ticket had already been used, at about 7:15pm." />
 
-            <div>
-                <label for="evidence" class="block text-sm font-medium text-gray-700">Evidence (optional)</label>
-                <input type="file" id="evidence" name="evidence" accept=".jpg,.jpeg,.png,.pdf" class="mt-1 block w-full text-sm">
-                <p class="mt-1 text-xs text-gray-500">A photo or screenshot helps, e.g. the scanner error or a message from the organiser. JPG, PNG or PDF, up to 4 MB.</p>
-                @error('evidence') <p class="mt-2 text-sm text-red-600">{{ $message }}</p> @enderror
-            </div>
+            <x-ui.field label="Evidence" name="evidence" type="file" accept=".jpg,.jpeg,.png,.pdf" optional
+                        class="[&_input]:p-2 [&_input]:text-sm"
+                        hint="A photo or screenshot helps, e.g. the scanner error or a message from the organiser. JPG, PNG or PDF, up to 4 MB." />
 
-            <div class="flex items-center justify-end gap-4">
-                <a href="{{ route('tickets.purchased.show', $order->ticket_id) }}" class="text-gray-600 hover:text-gray-800">Cancel</a>
-                <button class="bg-red-600 text-white font-semibold py-2 px-6 rounded-lg hover:bg-red-700">Send report</button>
+            <div class="flex flex-col-reverse gap-3 border-t border-gray-100 pt-6 sm:flex-row sm:justify-end">
+                <x-ui.button variant="secondary" :href="route('tickets.purchased.show', $order->ticket_id)">Cancel</x-ui.button>
+                <x-ui.button>Send report</x-ui.button>
             </div>
         </form>
-    </div>
+    </x-ui.card>
 </x-tixswap-layout>

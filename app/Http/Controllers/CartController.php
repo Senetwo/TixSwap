@@ -22,12 +22,19 @@ class CartController extends Controller
         // Fetch all tickets where the 'buyer_id' matches the current user's ID.
         // We also eager-load the 'event' relationship to avoid N+1 query problems.
         $purchasedTickets = Ticket::where('buyer_id', $userId)
-                                  ->with('event')
-                                  ->latest() // Order by the most recently purchased
-                                  ->get();
+            ->with(['event', 'orders' => fn ($q) => $q->where('user_id', $userId)->whereNotNull('paid_at')->with('dispute')])
+            ->latest()
+            ->get();
 
-        // Pass the fetched tickets to the view under the variable name 'tickets'.
-        // The view expects a variable named '$tickets'.
-        return view('cart.index', ['tickets' => $purchasedTickets]);
+        // Upcoming first (soonest at the top), then past events (most recent first).
+        [$upcoming, $past] = $purchasedTickets->partition(
+            fn (Ticket $t) => \Illuminate\Support\Carbon::parse($t->event->date)->isFuture()
+        );
+
+        return view('cart.index', [
+            'tickets' => $purchasedTickets,
+            'upcoming' => $upcoming->sortBy(fn ($t) => $t->event->date)->values(),
+            'past' => $past->sortByDesc(fn ($t) => $t->event->date)->values(),
+        ]);
     }
 }

@@ -1,20 +1,22 @@
-<x-tixswap-layout>
-    <x-slot name="title">Privacy Policy</x-slot>
-    <div class="bg-white rounded-lg shadow p-8 space-y-6">
-        <h1 class="text-3xl font-bold">Privacy Policy</h1>
-        <p class="text-gray-500">Last updated: June 25, 2025</p>
-        <div class="prose max-w-none">
-            <p>TixSwap ("us", "we", or "our") operates the TixSwap website (the "Service"). This page informs you of our policies regarding the collection, use, and disclosure of personal data when you use our Service and the choices you have associated with that data.</p>
+<x-tixswap-layout title="Privacy Policy" width="max-w-3xl">
+    <x-ui.page-header title="Privacy Policy" description="Last updated: November 3, 2026" />
+    <x-ui.card padding="p-6 sm:p-10">
+        @component('pages._prose')
+            <p>TixSwap ("us", "we", or "our") operates the TixSwap website (the "Service"). This page explains how we collect, use, and disclose personal data when you use the Service, and the choices you have about that data.</p>
 
-            <h2>Information Collection and Use</h2>
-            <p>We collect several different types of information for various purposes to provide and improve our Service to you.</p>
+            <h2>Information we collect</h2>
+            <ul>
+                <li><strong>Account details:</strong> your name and email address.</li>
+                <li><strong>Payment details:</strong> the phone number you pay with or are paid to, and M-Pesa transaction references. We never see or store your M-Pesa PIN.</li>
+                <li><strong>Listing verification:</strong> proof-of-purchase images and ticket or order numbers that sellers upload. These are only visible to our review team.</li>
+                <li><strong>Problem reports:</strong> the details and any evidence you send when reporting a problem with a ticket.</li>
+            </ul>
 
-            <h2>Types of Data Collected</h2>
-            <h3>Personal Data</h3>
-            <p>While using our Service, we may ask you to provide us with certain personally identifiable information that can be used to contact or identify you ("Personal Data"). Personally, identifiable information may include, but is not limited to: Email address, First name and last name, Phone number, Address, State, Province, ZIP/Postal code, City.</p>
+            <h2>How we use it</h2>
+            <p>We use this data to provide and maintain the Service; to verify listings and prevent fraud; to process payments, payouts and refunds; to resolve reported problems; to provide customer support; and to notify you about changes to the Service.</p>
 
-            <h2>Use of Data</h2>
-            <p>TixSwap uses the collected data for various purposes: to provide and maintain the Service; to notify you about changes to our Service; to allow you to participate in interactive features of our Service when you choose to do so; to provide customer care and support; to provide analysis or valuable information so that we can improve the Service.</p>
-        </div>
-    </div>
+            <h2>Your rights</h2>
+            <p>You can update your details or delete your account at any time from Account settings. To request a copy of your data, email <a href="mailto:support@tixswap.com">support@tixswap.com</a>.</p>
+        @endcomponent
+    </x-ui.card>
 </x-tixswap-layout>

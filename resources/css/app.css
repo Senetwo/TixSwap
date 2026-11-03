@@ -1,3 +1,47 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+    html {
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+        @apply bg-gray-50 text-gray-900 antialiased;
+        font-feature-settings: 'cv11', 'ss01';
+    }
+
+    /* One consistent, visible keyboard focus style everywhere. */
+    :focus-visible {
+        @apply outline-none ring-2 ring-gray-900 ring-offset-2;
+    }
+
+    [x-cloak] {
+        display: none !important;
+    }
+}
+
+@layer components {
+    /* Form controls share one look; components add only what differs. */
+    .form-control {
+        @apply block w-full rounded-lg border-gray-300 bg-white text-gray-900 shadow-sm placeholder:text-gray-400
+               focus:border-gray-900 focus:ring-gray-900 disabled:bg-gray-50 disabled:text-gray-500;
+    }
+
+    .form-control-error {
+        @apply border-red-500 focus:border-red-500 focus:ring-red-500;
+    }
+
+    .table-th {
+        @apply px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500;
+    }
+
+    .table-td {
+        @apply px-4 py-3 text-sm text-gray-700;
+    }
+
+    .money {
+        @apply tabular-nums;
+    }
+}

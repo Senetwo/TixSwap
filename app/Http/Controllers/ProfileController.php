@@ -16,12 +16,8 @@ class ProfileController extends Controller
      */
     public function edit(Request $request): View
 {
-    $user = $request->user();
-    $tickets = $user->tickets()->with('event')->latest()->get();
-
     return view('profile.edit', [
-        'user' => $user,
-        'tickets' => $tickets,
+        'user' => $request->user(),
     ]);
 }
 

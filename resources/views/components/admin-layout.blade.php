@@ -1,80 +1,93 @@
+@props(['title' => 'Admin'])
+@php
+    // Work waiting for an admin, shown as counts in the sidebar.
+    $counts = [
+        'review' => \App\Models\Ticket::where('status', 'pending')->count(),
+        'disputes' => \App\Models\Dispute::where('status', 'open')->count(),
+        'payouts' => \App\Models\Payout::where('status', 'pending')->count()
+            + \App\Models\Order::where('status', 'needs_refund')->count(),
+    ];
+    $items = [
+        ['Overview', 'admin.dashboard', 'admin.dashboard', 'chart', null],
+        ['Review queue', 'admin.tickets.pending', 'admin.tickets.*', 'clipboard-check', $counts['review']],
+        ['Listings', 'admin.listings.index', 'admin.listings.*', 'ticket', null],
+        ['Disputes', 'admin.disputes.index', 'admin.disputes.*', 'scale', $counts['disputes']],
+        ['Payouts & refunds', 'admin.payouts.index', 'admin.payouts.*', 'banknotes', $counts['payouts']],
+        ['Users', 'admin.users.index', 'admin.users.*', 'users', null],
+    ];
+@endphp
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="h-full bg-gray-50">
-    <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>{{ $title ?? 'TixSwap Admin' }}</title>
-        <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}">
-        @vite(['resources/css/app.css', 'resources/js/app.js'])
-        {{-- Pinned version so a new Chart.js release can't break the dashboard --}}
-        <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-    </head>
-    <body class="h-full">
-        <div class="flex h-full">
-            <!-- Sidebar -->
-            <aside class="w-64 flex-shrink-0 bg-gray-800 text-white flex flex-col">
-                <div class="h-16 flex items-center justify-center gap-2 text-xl font-bold border-b border-gray-700">
-                    <x-application-logo class="h-7 w-7 text-red-500" />
-                    TixSwap Admin
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="h-full">
+<head>
+    <x-partials-head :title="$title.' · Admin'" />
+</head>
+<body class="h-full" x-data="{ sidebar: false }" @keydown.escape.window="sidebar = false">
+    {{-- Mobile drawer backdrop --}}
+    <div x-cloak x-show="sidebar" x-transition.opacity class="fixed inset-0 z-40 bg-gray-950/50 lg:hidden" @click="sidebar = false" aria-hidden="true"></div>
+
+    <aside :class="sidebar ? 'translate-x-0' : '-translate-x-full'"
+           class="fixed inset-y-0 left-0 z-50 flex w-64 -translate-x-full flex-col bg-gray-950 text-gray-300 transition-transform duration-200 lg:translate-x-0">
+        <div class="flex h-16 items-center justify-between px-5">
+            <a href="{{ route('admin.dashboard') }}" class="flex items-center gap-2 font-bold text-white">
+                <x-application-logo class="h-8 w-8 text-brand-500" />
+                TixSwap <span class="rounded-md bg-white/10 px-1.5 py-0.5 text-[11px] font-semibold uppercase tracking-wider text-gray-300">Admin</span>
+            </a>
+            <button type="button" class="rounded-lg p-1.5 text-gray-400 hover:bg-white/10 lg:hidden" @click="sidebar = false" aria-label="Close menu">
+                <x-ui.icon name="x-mark" />
+            </button>
+        </div>
+        <nav class="flex-1 space-y-1 overflow-y-auto px-3 py-4" aria-label="Admin">
+            @foreach ($items as [$label, $route, $active, $icon, $count])
+                @php($isActive = request()->routeIs($active))
+                <a href="{{ route($route) }}" @class([
+                    'group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
+                    'bg-white/10 text-white' => $isActive,
+                    'hover:bg-white/5 hover:text-white' => ! $isActive,
+                ]) @if ($isActive) aria-current="page" @endif>
+                    <x-ui.icon :name="$icon" @class(['h-5 w-5', 'text-white' => $isActive, 'text-gray-500 group-hover:text-gray-300' => ! $isActive]) />
+                    {{ $label }}
+                    @if ($count)
+                        <span class="ml-auto rounded-full bg-brand-600 px-2 py-0.5 text-xs font-semibold text-white">{{ $count }}</span>
+                    @endif
+                </a>
+            @endforeach
+        </nav>
+        <div class="border-t border-white/10 p-4">
+            <div class="flex items-center gap-3">
+                <span class="flex h-9 w-9 items-center justify-center rounded-full bg-white/10 font-semibold text-white">{{ mb_strtoupper(mb_substr(auth()->user()->name, 0, 1)) }}</span>
+                <div class="min-w-0 flex-1">
+                    <p class="truncate text-sm font-medium text-white">{{ auth()->user()->name }}</p>
+                    <p class="truncate text-xs text-gray-500">{{ auth()->user()->email }}</p>
                 </div>
-                <nav class="flex-1 px-2 py-4 space-y-1">
-    <a href="{{ route('admin.dashboard') }}" class="{{ request()->routeIs('admin.dashboard') ? 'bg-gray-900 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white' }} group flex items-center px-2 py-2 text-sm font-medium rounded-md">
-        <svg class="mr-3 h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
-        Dashboard
-    </a>
-    <a href="{{ route('admin.listings.index') }}" class="{{ request()->routeIs('admin.listings.index') ? 'bg-gray-900 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white' }} group flex items-center px-2 py-2 text-sm font-medium rounded-md">
-         <svg class="mr-3 h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" /></svg>
-        Listings
-    </a>
-     <a href="{{ route('admin.users.index') }}" class="{{ request()->routeIs('admin.users.index') ? 'bg-gray-900 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white' }} group flex items-center px-2 py-2 text-sm font-medium rounded-md">
-         <svg class="mr-3 h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M15 21a6 6 0 00-9-5.197M15 21a6 6 0 006-6v-1a4 4 0 00-4-4H9a4 4 0 00-4 4v1a6 6 0 006 6z" /></svg>
-        Users
-    </a>
-    @php($openDisputes = \App\Models\Dispute::where('status', 'open')->count())
-    <a href="{{ route('admin.disputes.index') }}" class="{{ request()->routeIs('admin.disputes.*') ? 'bg-gray-900 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white' }} group flex items-center px-2 py-2 text-sm font-medium rounded-md">
-        <svg class="mr-3 h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
-        Disputes
-        @if ($openDisputes > 0)
-            <span class="ml-auto rounded-full bg-yellow-400 px-2 py-0.5 text-xs font-bold text-gray-900">{{ $openDisputes }}</span>
-        @endif
-    </a>
-    <a href="{{ route('admin.payouts.index') }}" class="{{ request()->routeIs('admin.payouts.*') ? 'bg-gray-900 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white' }} group flex items-center px-2 py-2 text-sm font-medium rounded-md">
-        <svg class="mr-3 h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
-        Payouts
-    </a>
-</nav>
-
-            </aside>
-
-            <!-- Main content -->
-            <div class="flex-1 flex flex-col">
-                <header class="bg-white shadow-sm w-full">
-                     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 h-16 flex justify-end items-center">
-                        <!-- User profile section -->
-                         <div class="flex items-center">
-                             <span class="mr-3 font-medium">{{ Auth::user()->name }}</span>
-                             <form method="POST" action="{{ route('logout') }}">
-                                 @csrf
-                                 <a href="{{ route('logout') }}" onclick="event.preventDefault(); this.closest('form').submit();" class="text-gray-500 hover:text-gray-700">
-                                     Log Out
-                                 </a>
-                             </form>
-                         </div>
-                     </div>
-                </header>
-                <main class="flex-1 p-6">
-                    @if (session('success'))
-                        <div class="bg-green-100 border-l-4 border-green-500 text-green-800 p-4 mb-6 rounded-lg" role="status">{{ session('success') }}</div>
-                    @endif
-                    @if (session('error'))
-                        <div class="bg-red-100 border-l-4 border-red-500 text-red-800 p-4 mb-6 rounded-lg" role="alert">{{ session('error') }}</div>
-                    @endif
-                    {{ $slot }}
-                </main>
-                 <footer class="bg-white border-t py-4 px-6">
-                     <p class="text-center text-sm text-gray-500">© 2025 TixSwap. All rights reserved.</p>
-                 </footer>
+                <form method="POST" action="{{ route('logout') }}">
+                    @csrf
+                    <button class="rounded-lg p-2 text-gray-400 hover:bg-white/10 hover:text-white" title="Log out" aria-label="Log out"><x-ui.icon name="logout" /></button>
+                </form>
             </div>
         </div>
-    </body>
+    </aside>
+
+    <div class="flex min-h-full flex-col lg:pl-64">
+        <header class="sticky top-0 z-30 flex h-16 items-center gap-4 border-b border-gray-200 bg-white/90 px-4 backdrop-blur sm:px-6 lg:px-8">
+            <button type="button" class="-ml-2 rounded-lg p-2 text-gray-600 hover:bg-gray-100 lg:hidden" @click="sidebar = true" aria-label="Open menu">
+                <x-ui.icon name="menu" class="h-6 w-6" />
+            </button>
+            <h1 class="text-base font-semibold text-gray-900">{{ $title }}</h1>
+            <a href="{{ route('profile.edit') }}" class="ml-auto text-sm font-medium text-gray-500 hover:text-gray-900">Account</a>
+        </header>
+
+        <main class="flex-1 px-4 py-8 sm:px-6 lg:px-8">
+            <div class="mx-auto max-w-6xl">
+                @if (session('success'))
+                    <x-ui.alert tone="success" dismissible class="mb-6">{{ session('success') }}</x-ui.alert>
+                @endif
+                @if (session('error'))
+                    <x-ui.alert tone="error" dismissible class="mb-6">{{ session('error') }}</x-ui.alert>
+                @endif
+                {{ $slot }}
+            </div>
+        </main>
+    </div>
+    @stack('scripts')
+</body>
 </html>

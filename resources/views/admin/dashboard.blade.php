@@ -1,90 +1,59 @@
-<x-admin-layout>
-    <x-slot name="title">Admin Dashboard</x-slot>
-
-    <!-- Charts -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        <div class="bg-white p-6 rounded-lg shadow">
-            <h3 class="font-semibold text-lg text-gray-800 mb-4">Sales Overview</h3>
-            <canvas id="salesChart"></canvas>
-        </div>
-        <div class="bg-white p-6 rounded-lg shadow">
-            <h3 class="font-semibold text-lg text-gray-800 mb-4">Tickets by Status</h3>
-            <canvas id="ticketsChart" class="mx-auto" style="max-width: 250px;"></canvas>
-        </div>
+<x-admin-layout title="Overview">
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <x-ui.stat label="Sales" :value="'KES '.number_format($kpis['sales'])" icon="chart" tone="blue" hint="Paid orders, excluding refunds" />
+        <x-ui.stat label="TixSwap revenue" :value="'KES '.number_format($kpis['revenue'])" icon="banknotes" tone="green" hint="Commission earned" />
+        <x-ui.stat label="Held in escrow" :value="'KES '.number_format($kpis['escrow'])" icon="lock" tone="amber" hint="Waiting for events to finish" />
+        <x-ui.stat label="Tickets sold" :value="number_format($kpis['sold'])" icon="ticket" tone="brand" :hint="number_format($kpis['live']).' live · '.number_format($kpis['users']).' users'" />
     </div>
 
-    <!-- Current Listings Table -->
-    <div class="bg-white p-6 rounded-lg shadow">
-        <h3 class="font-semibold text-lg text-gray-800 mb-4">Current Listings</h3>
-        <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200">
-                <thead class="bg-gray-50">
-                    <tr>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Event</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Seller</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Price</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Actions</th>
-                    </tr>
-                </thead>
-                <tbody class="bg-white divide-y divide-gray-200">
-                    @forelse ($allTickets as $ticket)
-                        <tr>
-                            <td class="px-6 py-4 whitespace-nowrap font-medium text-gray-900">{{ $ticket->event->name }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-gray-500">{{ $ticket->seller->name }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-gray-500">KES {{ number_format($ticket->price) }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                 <span class="px-3 py-1 text-xs font-bold rounded-full text-white
-                                    @if($ticket->status == 'approved') bg-green-500
-                                    @elseif($ticket->status == 'pending') bg-yellow-500
-                                    @else bg-red-500 @endif">
-                                    {{ ucfirst($ticket->status) }}
+    <div class="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-3">
+        <x-ui.card title="Needs attention" padding="p-2" class="lg:col-span-1">
+            @php($allClear = collect($attention)->sum(fn ($a) => $a[1]) === 0)
+            @if ($allClear)
+                <div class="flex flex-col items-center px-4 py-8 text-center">
+                    <span class="flex h-11 w-11 items-center justify-center rounded-full bg-green-50 text-green-600"><x-ui.icon name="check-circle" class="h-6 w-6" /></span>
+                    <p class="mt-3 font-semibold text-gray-900">All clear</p>
+                    <p class="text-sm text-gray-500">Nothing is waiting for you.</p>
+                </div>
+            @else
+                <ul>
+                    @foreach ($attention as [$label, $count, $route, $icon])
+                        <li>
+                            <a href="{{ route($route) }}" class="flex items-center gap-3 rounded-xl px-4 py-3 hover:bg-gray-50">
+                                <span @class(['flex h-9 w-9 items-center justify-center rounded-lg', 'bg-brand-50 text-brand-600' => $count, 'bg-gray-100 text-gray-400' => ! $count])>
+                                    <x-ui.icon :name="$icon" />
                                 </span>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-right">
-                                <a href="{{ route('admin.tickets.pending') }}" class="mt-4 inline-block bg-green-500 text-white font-bold py-2 px-4 rounded hover:bg-green-600">Review Tickets</a>
-                                <a href="{{ route('admin.listings.edit', $ticket) }}" class="bg-red-600 text-white py-1 px-3 rounded-md font-semibold hover:bg-red-700 text-xs">Edit</a>
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="5" class="text-center py-8 text-gray-500">No tickets have been listed yet.</td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
+                                <span @class(['flex-1 text-sm font-medium', 'text-gray-900' => $count, 'text-gray-500' => ! $count])>{{ $label }}</span>
+                                <span @class(['money text-sm font-semibold', 'text-gray-900' => $count, 'text-gray-400' => ! $count])>{{ $count }}</span>
+                                <x-ui.icon name="chevron-right" class="h-4 w-4 text-gray-300" />
+                            </a>
+                        </li>
+                    @endforeach
+                </ul>
+            @endif
+        </x-ui.card>
+
+        <x-ui.card title="Latest listings" padding="p-0" class="lg:col-span-2">
+            <x-slot:actions>
+                <a href="{{ route('admin.listings.index') }}" class="text-sm font-medium text-brand-600 hover:text-brand-700">View all</a>
+            </x-slot:actions>
+            @if ($recent->isEmpty())
+                <p class="px-6 py-10 text-center text-sm text-gray-500">No listings yet.</p>
+            @else
+                <ul class="divide-y divide-gray-100">
+                    @foreach ($recent as $ticket)
+                        <li class="flex items-center gap-4 px-6 py-3">
+                            <x-event-image :event="$ticket->event" class="h-10 w-10" rounded="rounded-lg" />
+                            <div class="min-w-0 flex-1">
+                                <p class="truncate text-sm font-medium text-gray-900">{{ $ticket->event->name }}</p>
+                                <p class="truncate text-xs text-gray-500">{{ $ticket->seller?->name }} · {{ $ticket->created_at->diffForHumans() }}</p>
+                            </div>
+                            <p class="money hidden text-sm text-gray-700 sm:block">KES {{ number_format($ticket->price) }}</p>
+                            <x-ui.status :status="$ticket->status" />
+                        </li>
+                    @endforeach
+                </ul>
+            @endif
+        </x-ui.card>
     </div>
-
-    <script>
-        // Chart.js script for Sales Overview
-        const salesCtx = document.getElementById('salesChart').getContext('2d');
-        new Chart(salesCtx, {
-            type: 'bar',
-            data: {
-                labels: ['Total Sales'],
-                datasets: [{
-                    label: 'Sales (KES)',
-                    data: [{{ $stats['totalSalesValue'] ?? 0 }}],
-                    backgroundColor: 'rgba(220, 38, 38, 0.8)',
-                }]
-            },
-            options: { responsive: true, scales: { y: { beginAtZero: true } } }
-        });
-
-        // Chart.js script for Tickets Sold
-        const ticketsCtx = document.getElementById('ticketsChart').getContext('2d');
-        new Chart(ticketsCtx, {
-            type: 'doughnut',
-            data: {
-                labels: ['Sold', 'Available', 'Pending'],
-                datasets: [{
-                    label: 'Tickets',
-                    data: [{{ $stats['ticketsSold'] }}, {{ $stats['activeListings'] }}, {{ $stats['pendingTickets'] }}],
-                    backgroundColor: ['rgb(220, 38, 38)','rgb(22, 163, 74)','rgb(255, 205, 86)'],
-                    hoverOffset: 4
-                }]
-            }
-        });
-    </script>
 </x-admin-layout>

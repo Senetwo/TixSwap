@@ -1,63 +1,31 @@
-<x-guest-layout>
-    <form method="POST" action="{{ route('register') }}">
+<x-guest-layout title="Create account">
+    @include('auth._heading', ['heading' => 'Create your account', 'sub' => 'Already have one? <a href="'.route('login').'" class="font-semibold text-brand-600 hover:text-brand-700">Log in</a>'])
+
+    <form method="POST" action="{{ route('register') }}" class="space-y-5">
         @csrf
+        <fieldset>
+            <legend class="text-sm font-medium text-gray-800">I want to…</legend>
+            <div class="mt-2 grid grid-cols-2 gap-3">
+                @foreach (['buyer' => ['ticket', 'Buy tickets', 'Find verified tickets'], 'seller' => ['banknotes', 'Sell tickets', 'Get paid via M-Pesa']] as $value => [$icon, $label, $text])
+                    <label class="relative flex cursor-pointer flex-col rounded-xl border border-gray-200 p-4 transition hover:bg-gray-50 has-[:checked]:border-gray-900 has-[:checked]:bg-gray-50 has-[:checked]:ring-1 has-[:checked]:ring-gray-900">
+                        <input type="radio" name="role" value="{{ $value }}" class="sr-only" @checked(old('role', 'buyer') === $value) required>
+                        <x-ui.icon :name="$icon" class="h-6 w-6 text-brand-600" />
+                        <span class="mt-3 text-sm font-semibold text-gray-900">{{ $label }}</span>
+                        <span class="mt-0.5 text-xs text-gray-500">{{ $text }}</span>
+                    </label>
+                @endforeach
+            </div>
+            @error('role') <p class="mt-1.5 text-sm text-red-600">{{ $message }}</p> @enderror
+        </fieldset>
 
-        <!-- Name -->
-        <div>
-            <x-input-label for="name" :value="__('Name')" />
-            <x-text-input id="name" class="block mt-1 w-full" type="text" name="name" :value="old('name')" required autofocus autocomplete="name" />
-            <x-input-error :messages="$errors->get('name')" class="mt-2" />
-        </div>
+        <x-ui.field label="Full name" name="name" required autofocus autocomplete="name" />
+        <x-ui.field label="Email" name="email" type="email" required autocomplete="username" />
+        <x-ui.field label="Password" name="password" type="password" required autocomplete="new-password" hint="At least 8 characters." />
+        <x-ui.field label="Confirm password" name="password_confirmation" type="password" required autocomplete="new-password" />
 
-        <!-- Email Address -->
-        <div class="mt-4">
-            <x-input-label for="email" :value="__('Email')" />
-            <x-text-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email')" required autocomplete="username" />
-            <x-input-error :messages="$errors->get('email')" class="mt-2" />
-        </div>
-
-        <!-- Password -->
-        <div class="mt-4">
-            <x-input-label for="password" :value="__('Password')" />
-
-            <x-text-input id="password" class="block mt-1 w-full"
-                            type="password"
-                            name="password"
-                            required autocomplete="new-password" />
-
-            <x-input-error :messages="$errors->get('password')" class="mt-2" />
-        </div>
-
-        <!-- Confirm Password -->
-        <div class="mt-4">
-            <x-input-label for="password_confirmation" :value="__('Confirm Password')" />
-
-            <x-text-input id="password_confirmation" class="block mt-1 w-full"
-                            type="password"
-                            name="password_confirmation" required autocomplete="new-password" />
-
-            <x-input-error :messages="$errors->get('password_confirmation')" class="mt-2" />
-        </div>
-
-
-<!-- ADD THIS NEW BLOCK FOR ROLE SELECTION -->
-<div class="mt-4">
-    <x-input-label for="role" :value="__('I want to...')" />
-    <select id="role" name="role" class="block mt-1 w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm">
-        <option value="buyer">Buy Tickets</option>
-        <option value="seller">Sell Tickets</option>
-    </select>
-</div>
-
-<div class="flex items-center justify-end mt-4">
-    <div class="flex items-center justify-end mt-4">
-        <a class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" href="{{ route('login') }}">
-            {{ __('Already registered?') }}
-        </a>
-
-            <x-primary-button class="ms-4">
-                {{ __('Register') }}
-            </x-primary-button>
-        </div>
+        <x-ui.button size="lg" class="w-full">Create account</x-ui.button>
+        <p class="text-center text-xs text-gray-500">
+            By creating an account you agree to our <a href="{{ route('terms') }}" class="underline hover:text-gray-700">Terms</a> and <a href="{{ route('privacy') }}" class="underline hover:text-gray-700">Privacy Policy</a>.
+        </p>
     </form>
 </x-guest-layout>

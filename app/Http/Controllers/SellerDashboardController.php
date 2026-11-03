@@ -2,50 +2,67 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Order;
+use App\Models\Payout;
+use App\Models\Ticket;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 
 class SellerDashboardController extends Controller
 {
-    public function index(): View
+    /**
+     * Tabs on the listings table: key => [label, statuses].
+     */
+    private const TABS = [
+        'all' => ['All', null],
+        'live' => ['Live', [Ticket::STATUS_APPROVED, Ticket::STATUS_RESERVED]],
+        'review' => ['In review', [Ticket::STATUS_PENDING]],
+        'sold' => ['Sold', [Ticket::STATUS_SOLD]],
+        'rejected' => ['Rejected', [Ticket::STATUS_REJECTED]],
+    ];
+
+    public function index(Request $request): View
     {
         /** @var \App\Models\User $seller */
         $seller = Auth::user();
-        $sellerTicketsQuery = $seller->tickets();
-
-        // Calculate statistics for the seller's dashboard
-        $stats = [
-            'pending' => (clone $sellerTicketsQuery)->where('status', 'pending')->count(),
-            'approved' => (clone $sellerTicketsQuery)->where('status', 'approved')->count(),
-            'sold' => (clone $sellerTicketsQuery)->where('status', 'sold')->count(),
-        ];
 
         // Money from sales, after TixSwap's commission.
-        $soldOrders = \App\Models\Order::query()
-            ->where('status', \App\Models\Order::STATUS_PAID)
+        $soldOrders = Order::query()
+            ->where('status', Order::STATUS_PAID)
             ->whereHas('ticket', fn ($q) => $q->where('user_id', $seller->id));
 
         $earnings = [
-            'in_escrow' => (clone $soldOrders)->whereIn('escrow_status', [\App\Models\Order::ESCROW_HELD, \App\Models\Order::ESCROW_DISPUTED])->sum('seller_amount'),
-            'disputed' => (clone $soldOrders)->where('escrow_status', \App\Models\Order::ESCROW_DISPUTED)->sum('seller_amount'),
-            'awaiting_payout' => $seller->payouts()->where('status', \App\Models\Payout::STATUS_PENDING)->sum('amount'),
-            'paid_out' => $seller->payouts()->where('status', \App\Models\Payout::STATUS_PAID)->sum('amount'),
+            'in_escrow' => (clone $soldOrders)->whereIn('escrow_status', [Order::ESCROW_HELD, Order::ESCROW_DISPUTED])->sum('seller_amount'),
+            'disputed' => (clone $soldOrders)->where('escrow_status', Order::ESCROW_DISPUTED)->sum('seller_amount'),
+            'awaiting_payout' => $seller->payouts()->where('status', Payout::STATUS_PENDING)->sum('amount'),
+            'paid_out' => $seller->payouts()->where('status', Payout::STATUS_PAID)->sum('amount'),
         ];
 
-        // Fetch recent tickets listed by this seller for display.
-        // We use 'with('event')' to eager-load the event details to prevent N+1 issues.
+        $tab = array_key_exists($request->query('tab'), self::TABS) ? $request->query('tab') : 'all';
+
+        // Count per tab for the tab labels.
+        $statusCounts = $seller->tickets()->selectRaw('status, count(*) as total')->groupBy('status')->pluck('total', 'status');
+        $tabs = collect(self::TABS)->map(fn ($def) => [
+            'label' => $def[0],
+            'count' => $def[1] === null ? $statusCounts->sum() : collect($def[1])->sum(fn ($s) => $statusCounts[$s] ?? 0),
+        ]);
+
         $tickets = $seller->tickets()
-                                ->with('event')
-                                ->latest()
-                                ->paginate(10); // Using pagination is better for long lists
+            ->with('event')
+            ->when(self::TABS[$tab][1], fn ($q, $statuses) => $q->whereIn('status', $statuses))
+            ->latest()
+            ->paginate(10)
+            ->withQueryString();
 
         return view('seller.dashboard', [
-            'stats' => $stats,
+            'tickets' => $tickets,
             'earnings' => $earnings,
+            'tabs' => $tabs,
+            'tab' => $tab,
+            'hasListings' => $statusCounts->sum() > 0,
             'needsPayoutPhone' => ! $seller->payout_phone,
-            'disputedTicketIds' => (clone $soldOrders)->where('escrow_status', \App\Models\Order::ESCROW_DISPUTED)->pluck('ticket_id')->all(),
-            'tickets' => $tickets
+            'disputedTicketIds' => (clone $soldOrders)->where('escrow_status', Order::ESCROW_DISPUTED)->pluck('ticket_id')->all(),
         ]);
     }
 }

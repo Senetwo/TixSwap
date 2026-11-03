@@ -1,31 +1,52 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
-    <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <meta name="csrf-token" content="{{ csrf_token() }}">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="h-full bg-white">
+<head>
+    <x-partials-head :title="$title ?? null" />
+</head>
+<body class="h-full bg-white">
+    <div class="flex min-h-full">
+        {{-- Brand panel (desktop) --}}
+        <aside class="relative hidden w-[44%] max-w-xl flex-col justify-between overflow-hidden bg-gray-950 p-12 text-white lg:flex">
+            <div class="absolute -right-24 -top-24 h-96 w-96 rounded-full bg-brand-600/40 blur-3xl" aria-hidden="true"></div>
+            <div class="absolute -bottom-32 -left-16 h-96 w-96 rounded-full bg-orange-500/20 blur-3xl" aria-hidden="true"></div>
 
-        <title>{{ config('app.name', 'Laravel') }}</title>
+            <a href="{{ route('login') }}" class="relative flex items-center gap-2 text-xl font-bold">
+                <x-application-logo class="h-9 w-9 text-brand-500" /> TixSwap
+            </a>
 
-        <!-- Fonts -->
-        <link rel="preconnect" href="https://fonts.bunny.net">
-        <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
+            <div class="relative">
+                <h2 class="text-4xl font-bold leading-tight tracking-tight">Can't make it? Sell it.<br>Missed out? Buy it, safely.</h2>
+                <p class="mt-4 text-lg text-gray-300">The ticket resale marketplace built for Kenya.</p>
 
-        <!-- Scripts -->
-        <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}">
-        @vite(['resources/css/app.css', 'resources/js/app.js'])
-    </head>
-    <body class="font-sans text-gray-900 antialiased">
-        <div class="min-h-screen flex flex-col sm:justify-center items-center pt-6 sm:pt-0 bg-gray-100">
-            <div>
-                <a href="/">
-                    <x-application-logo class="w-20 h-20 text-red-600" />
-                </a>
+                <ul class="mt-10 space-y-6">
+                    @foreach ([
+                        ['shield-check', 'Every listing checked', 'Our team reviews each ticket and its proof of purchase before it goes live.'],
+                        ['phone', 'Pay with M-Pesa', 'Approve the payment on your phone. We never ask for your PIN.'],
+                        ['lock', 'Escrow protection', 'Sellers get paid after the event. If the ticket doesn\'t work, you get your money back.'],
+                    ] as [$icon, $heading, $text])
+                        <li class="flex gap-4">
+                            <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/10 ring-1 ring-white/15"><x-ui.icon :name="$icon" class="h-5 w-5 text-white" /></span>
+                            <div>
+                                <p class="font-semibold">{{ $heading }}</p>
+                                <p class="mt-0.5 text-sm text-gray-400">{{ $text }}</p>
+                            </div>
+                        </li>
+                    @endforeach
+                </ul>
             </div>
 
-            <div class="w-full sm:max-w-md mt-6 px-6 py-4 bg-white shadow-md overflow-hidden sm:rounded-lg">
+            <p class="relative text-sm text-gray-500">© {{ date('Y') }} TixSwap · <a href="{{ route('terms') }}" class="hover:text-gray-300">Terms</a> · <a href="{{ route('privacy') }}" class="hover:text-gray-300">Privacy</a></p>
+        </aside>
+
+        {{-- Form --}}
+        <main class="flex flex-1 flex-col justify-center px-4 py-12 sm:px-6 lg:px-16">
+            <div class="mx-auto w-full max-w-sm">
+                <a href="{{ route('login') }}" class="mb-10 flex items-center gap-2 text-xl font-bold text-gray-900 lg:hidden">
+                    <x-application-logo class="h-9 w-9 text-brand-600" /> TixSwap
+                </a>
                 {{ $slot }}
             </div>
-        </div>
-    </body>
+        </main>
+    </div>
+</body>
 </html>

@@ -24,18 +24,22 @@ class ListingManagementController extends Controller
 
     public function edit(Ticket $ticket)
     {
+        abort_if(in_array($ticket->status, [Ticket::STATUS_SOLD, Ticket::STATUS_RESERVED]), 403, 'Sold or reserved tickets cannot be edited.');
+
         return view('admin.listings.edit', ['ticket' => $ticket]);
     }
 
     public function update(Request $request, Ticket $ticket)
     {
+        abort_if(in_array($ticket->status, [Ticket::STATUS_SOLD, Ticket::STATUS_RESERVED]), 403, 'Sold or reserved tickets cannot be edited.');
+
         $validated = $request->validate([
             'price' => 'required|numeric|min:1|max:1000000',
             'seat_details' => 'required|string|max:255',
         ]);
 
         $ticket->update($validated);
-        return redirect()->route('admin.dashboard')->with('success', 'Ticket updated successfully.');
+        return redirect()->route('admin.listings.index')->with('success', 'Listing updated.');
     }
 
     public function destroy(Ticket $ticket)
