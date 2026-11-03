@@ -43,6 +43,19 @@ Artisan::command('tixswap:check-proofs {--all : Re-check listings that were alre
     $this->info('Checked '.$tickets->count().' listing(s).');
 })->purpose('Run the AI proof-of-purchase check on listings waiting for review');
 
+Artisan::command('tixswap:make-admin {email}', function (string $email) {
+    $user = App\Models\User::where('email', $email)->first();
+
+    if (! $user) {
+        $this->error("No account with the email {$email}. Ask them to sign up first.");
+
+        return 1;
+    }
+
+    $user->forceFill(['role' => 'admin'])->save();
+    $this->info("{$user->name} ({$email}) is now an admin.");
+})->purpose('Make an existing account an admin (admins cannot be created from the website)');
+
 // Requires the scheduler on the server: * * * * * php artisan schedule:run
 Schedule::command('tixswap:expire-reservations')->everyMinute()->withoutOverlapping();
 Schedule::command('tixswap:release-escrow')->hourly()->withoutOverlapping();

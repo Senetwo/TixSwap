@@ -122,7 +122,7 @@
         @if ($topEvents->isEmpty())
             <p class="px-6 py-10 text-center text-sm text-gray-500">No sales in this period.</p>
         @else
-            <div class="overflow-x-auto">
+            <div class="relative overflow-x-auto">
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-50"><tr><th class="table-th">Event</th><th class="table-th text-right">Tickets sold</th><th class="table-th text-right">Sales</th></tr></thead>
                     <tbody class="divide-y divide-gray-100">

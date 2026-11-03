@@ -1,6 +1,6 @@
 <x-admin-layout title="Users">
     <x-ui.card padding="p-0">
-        <div class="overflow-x-auto">
+        <div class="relative overflow-x-auto">
             <table class="min-w-full divide-y divide-gray-200">
                 <thead class="bg-gray-50">
                     <tr>
