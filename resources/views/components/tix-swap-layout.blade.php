@@ -48,6 +48,8 @@
                         <x-ui.button size="sm" icon="plus" :href="route('seller.tickets.create')" class="hidden sm:inline-flex">Sell a ticket</x-ui.button>
                     @endif
 
+                    <x-notification-bell />
+
                     {{-- Account menu (desktop) --}}
                     <div x-data="{ open: false }" class="relative hidden md:block" @keydown.escape.window="open = false">
                         <button type="button" @click="open = !open" :aria-expanded="open" aria-haspopup="true"

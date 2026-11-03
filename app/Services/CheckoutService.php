@@ -11,6 +11,10 @@ use App\Services\Mpesa\MpesaException;
 use App\Services\Mpesa\MpesaGateway;
 use App\Services\Mpesa\PhoneNumber;
 use App\Services\Mpesa\StkResult;
+use App\Notifications\PaymentNeedsRefund;
+use App\Notifications\PurchaseConfirmed;
+use App\Notifications\TicketSold;
+use App\Support\Notifier;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -192,6 +196,7 @@ class CheckoutService
                     'order_id' => $order->id, 'amount_ok' => $amountOk, 'deliverable' => $deliverable,
                 ]);
                 $order->forceFill(['status' => Order::STATUS_NEEDS_REFUND, 'paid_at' => now()])->save();
+                Notifier::send($order->buyer, new PaymentNeedsRefund($order));
 
                 return $order;
             }
@@ -209,6 +214,9 @@ class CheckoutService
                 'escrow_status' => Order::ESCROW_HELD,
                 'escrow_release_at' => $this->escrowReleaseTime($ticket),
             ])->save();
+
+            Notifier::send($order->buyer, new PurchaseConfirmed($order));
+            Notifier::send($ticket->seller, new TicketSold($order));
 
             return $order;
         });

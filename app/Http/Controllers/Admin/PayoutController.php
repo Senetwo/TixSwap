@@ -63,6 +63,10 @@ class PayoutController extends Controller
             return true;
         });
 
+        if ($updated) {
+            \App\Support\Notifier::send($payout->seller, new \App\Notifications\PayoutSent($payout->fresh(['order.ticket.event'])));
+        }
+
         return back()->with($updated ? 'success' : 'error', $updated ? 'Payout marked as paid.' : 'That payout was already processed.');
     }
 
@@ -92,6 +96,10 @@ class PayoutController extends Controller
             $payment->forceFill([
                 'result_desc' => \Illuminate\Support\Str::limit('Refunded: '.strtoupper(trim($request->input('reference'))).' | '.$payment->result_desc, 250),
             ])->save();
+        }
+
+        if ($updated) {
+            \App\Support\Notifier::send($order->buyer, new \App\Notifications\RefundSent($order->fresh(['ticket.event']), strtoupper(trim($request->input('reference')))));
         }
 
         return back()->with($updated ? 'success' : 'error', $updated ? 'Order marked as refunded.' : 'That order was already processed.');

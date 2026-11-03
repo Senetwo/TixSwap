@@ -8,6 +8,9 @@ use App\Models\User;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use App\Notifications\DisputeOpened;
+use App\Notifications\DisputeResolved;
+use App\Support\Notifier;
 use RuntimeException;
 
 class DisputeService
@@ -42,6 +45,9 @@ class DisputeService
                 ])->save();
 
                 $order->forceFill(['escrow_status' => Order::ESCROW_DISPUTED])->save();
+
+                Notifier::send($order->ticket->seller, new DisputeOpened($dispute));
+                Notifier::send(User::where('role', 'admin')->get(), new DisputeOpened($dispute, forAdmin: true));
 
                 return $dispute;
             });
@@ -92,5 +98,9 @@ class DisputeService
         if ($decision === 'release') {
             $this->checkout->releaseDueEscrow();
         }
+
+        $dispute->refresh()->load('order.ticket.seller', 'buyer');
+        Notifier::send($dispute->buyer, new DisputeResolved($dispute));
+        Notifier::send($dispute->order->ticket->seller, new DisputeResolved($dispute, forSeller: true));
     }
 }

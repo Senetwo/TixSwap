@@ -48,6 +48,14 @@ class User extends Authenticatable implements MustVerifyEmail
         ];
     }
 
+    /**
+     * Phone number for SMS: the payout number, or the number they last paid with.
+     */
+    public function routeNotificationForSms(): ?string
+    {
+        return $this->payout_phone ?: $this->orders()->whereNotNull('phone_number')->latest('id')->value('phone_number');
+    }
+
     public function isAdmin(): bool
     {
         return $this->role === 'admin';

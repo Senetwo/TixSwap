@@ -73,7 +73,10 @@
                 <x-ui.icon name="menu" class="h-6 w-6" />
             </button>
             <h1 class="text-base font-semibold text-gray-900">{{ $title }}</h1>
-            <a href="{{ route('profile.edit') }}" class="ml-auto text-sm font-medium text-gray-500 hover:text-gray-900">Account</a>
+            <div class="ml-auto flex items-center gap-3">
+                <x-notification-bell />
+                <a href="{{ route('profile.edit') }}" class="text-sm font-medium text-gray-500 hover:text-gray-900">Account</a>
+            </div>
         </header>
 
         <main class="flex-1 px-4 py-8 sm:px-6 lg:px-8">

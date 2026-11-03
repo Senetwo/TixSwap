@@ -59,6 +59,22 @@ return [
     ],
 
     /*
+    | Notifications. Email uses the normal MAIL_* settings.
+    | SMS: SMS_DRIVER=log (default, writes to the log), africastalking
+    | (real SMS), or empty to switch SMS off.
+    */
+    'notifications' => [
+        'mail' => (bool) env('NOTIFICATIONS_MAIL', true),
+    ],
+
+    'sms' => [
+        'driver' => env('SMS_DRIVER', 'log'),
+        'username' => env('AFRICASTALKING_USERNAME', 'sandbox'),
+        'api_key' => env('AFRICASTALKING_API_KEY'),
+        'sender_id' => env('AFRICASTALKING_SENDER_ID'),
+    ],
+
+    /*
     | Marketplace rules.
     */
     'tixswap' => [
